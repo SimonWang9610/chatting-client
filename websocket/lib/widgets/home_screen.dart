@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:websocket/widgets/chat_list.dart';
+import '../widgets/contact_list.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -9,7 +10,10 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  final _pages = <Widget>[const ChatList()];
+  final _pages = <Widget>[
+    const ContactList(),
+    const ChatList(),
+  ];
 
   final _controller = PageController(initialPage: 0);
 

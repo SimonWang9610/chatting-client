@@ -1,18 +1,23 @@
 import 'package:flutter/material.dart';
+import 'package:websocket/cache/chat_cache.dart';
 import 'package:websocket/cache/data_cache.dart';
+import 'package:websocket/cache/local_cache.dart';
+import 'package:websocket/streams/socket_manager.dart';
 import 'package:websocket/widgets/chat_screen.dart';
+import 'package:websocket/widgets/login_screen.dart';
 import '../models/models.dart';
 import '../cache/contact_cache.dart';
 import '../utils/http_util.dart';
+import '../streams/stream_dispatcher.dart';
 
-class ContactScreen extends StatefulWidget {
-  const ContactScreen({Key? key}) : super(key: key);
+class ContactList extends StatefulWidget {
+  const ContactList({Key? key}) : super(key: key);
 
   @override
-  State<ContactScreen> createState() => _ContactScreenState();
+  State<ContactList> createState() => _ContactListState();
 }
 
-class _ContactScreenState extends State<ContactScreen>
+class _ContactListState extends State<ContactList>
     with AutomaticKeepAliveClientMixin {
   List<ContactDetail> _contacts = [];
 
@@ -37,6 +42,12 @@ class _ContactScreenState extends State<ContactScreen>
     return Scaffold(
       appBar: AppBar(
         title: const Text('Contacts'),
+        actions: [
+          IconButton(
+            onPressed: _logout,
+            icon: const Icon(Icons.logout),
+          ),
+        ],
       ),
       body: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -54,6 +65,26 @@ class _ContactScreenState extends State<ContactScreen>
           ),
         ],
       ),
+    );
+  }
+
+  void _logout() {
+    // flush and close LocalCache
+    ChatCache.instance.close();
+    ContactCache.instance.close();
+    LocalCache.openedBoxes.clear();
+
+    // close StreamDispatcher
+    ChatDispatcher.instance.close();
+
+    // close socket
+    SocketManager.instance.close();
+
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(
+        builder: (_) => const LoginScreen(),
+      ),
+      (route) => false,
     );
   }
 }

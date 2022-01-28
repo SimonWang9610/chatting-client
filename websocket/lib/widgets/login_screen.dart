@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:websocket/cache/chat_cache.dart';
+import 'package:websocket/cache/contact_cache.dart';
 import 'package:websocket/cache/data_cache.dart';
 import 'package:websocket/streams/socket_manager.dart';
 import 'package:websocket/utils/http_util.dart';
@@ -64,6 +65,7 @@ class _LoginScreenState extends State<LoginScreen> {
       if (result['success']) {
         DataCache.instance.currentUser = result['name'];
         SocketManager();
+        ContactCache.instance;
         ChatCache.instance;
 
         Navigator.of(context).push(

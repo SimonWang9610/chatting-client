@@ -40,7 +40,7 @@ class SocketManager {
 
   bool get isConnected => _subscription != null;
 
-  void cancel() {
+  void close() {
     _subscription?.cancel();
     _channel.sink.close();
 

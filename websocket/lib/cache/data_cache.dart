@@ -17,7 +17,10 @@ class DataCache extends LocalCache {
   void clear() => _box.clear();
 
   @override
-  void close() => _box.close();
+  void close() {
+    clear();
+    _box.close();
+  }
 
   @override
   void flush() => _box.flush();

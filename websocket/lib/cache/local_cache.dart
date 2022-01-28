@@ -25,7 +25,8 @@ class LocalCache with ChangeNotifier {
   }
 
   close() {}
-  clear() {}
+
+  clear() => openedBoxes.clear();
   flush() {}
 
   Stream<dynamic>? subscribe(String key) {}

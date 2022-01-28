@@ -16,7 +16,10 @@ class ContactCache extends LocalCache {
   void clear() => _box.clear();
 
   @override
-  void close() => _box.close();
+  void close() {
+    flush();
+    _box.close();
+  }
 
   @override
   void flush() => _box.flush();
