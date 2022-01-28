@@ -35,7 +35,7 @@ class ContactCache extends LocalCache {
   }
 
   @override
-  void unsubscribe() {
+  void unsubscribe(String key) {
     subscriber = null;
   }
 

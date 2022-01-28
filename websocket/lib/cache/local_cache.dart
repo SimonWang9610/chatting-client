@@ -29,5 +29,5 @@ class LocalCache with ChangeNotifier {
   flush() {}
 
   Stream<dynamic>? subscribe(String key) {}
-  void unsubscribe() {}
+  void unsubscribe(String key) {}
 }

@@ -36,7 +36,8 @@ class _ChatScreenState extends State<ChatScreen> {
 
     _historyMessagesCount = _messages.length;
 
-    _subscription = ChatCache.instance.subscribe(widget.id).listen((event) {
+    _subscription =
+        ChatCache.instance.subscribe(widget.id, true).listen((event) {
       final chatData = event.value as ChatData;
 
       _messages.add(chatData.last);
@@ -46,9 +47,10 @@ class _ChatScreenState extends State<ChatScreen> {
 
   @override
   void dispose() {
-    ChatCache.instance.unsubscribe();
     ChatDispatcher.instance.unsubscribe();
     _subscription.cancel();
+    ChatCache.instance.unsubscribe(widget.id);
+
     super.dispose();
   }
 

@@ -23,14 +23,16 @@ class _ChatListState extends State<ChatList>
   @override
   void initState() {
     super.initState();
-    chats = ChatCache.instance.getOrderedChats();
+    chats = ChatCache.instance.orderedChats;
 
     ChatCache.instance.addListener(_updateChatList);
   }
 
   void _updateChatList() {
-    chats = ChatCache.instance.getOrderedChats();
-    setState(() {});
+    chats = ChatCache.instance.orderedChats;
+    if (mounted) {
+      setState(() {});
+    }
   }
 
   @override
@@ -77,21 +79,55 @@ class _ChatTileState extends State<ChatTile> {
   @override
   void initState() {
     super.initState();
-    _subscription = ChatCache.instance.subscribe(widget.chatId).listen((event) {
-      final chatData = event.value as ChatData;
-
-      _unreadCount = chatData.unreadCount;
-      _latestMsg = chatData.last;
-
-      setState(() {});
-    });
+    _subscription = _listenChatMessages(widget.chatId);
   }
 
   @override
   void dispose() {
     _subscription.cancel();
-    ChatCache.instance.unsubscribe();
+    ChatCache.instance.unsubscribe(widget.chatId);
     super.dispose();
+    print('!!!${widget.chatId} disposed');
+  }
+
+  @override
+  void didUpdateWidget(ChatTile oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    if (widget.chatId != oldWidget.chatId) {
+      _subscription.cancel();
+      ChatCache.instance.unsubscribe(oldWidget.chatId);
+
+      _subscription = _listenChatMessages(widget.chatId);
+      print('@@@${oldWidget.chatId} updated to ${widget.chatId}');
+    }
+  }
+
+  @override
+  void deactivate() {
+    super.deactivate();
+    print('---${widget.chatId} deactivated');
+  }
+
+  @override
+  void activate() {
+    super.activate();
+    print('+++${widget.chatId} activated');
+  }
+
+  StreamSubscription _listenChatMessages(String chatId) {
+    return ChatCache.instance.subscribe(chatId).listen(
+      (event) {
+        final chatData = event.value as ChatData;
+
+        _unreadCount = chatData.unreadCount;
+        _latestMsg = chatData.last;
+
+        if (mounted) {
+          setState(() {});
+        }
+      },
+    );
   }
 
   @override

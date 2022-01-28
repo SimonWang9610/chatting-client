@@ -8,12 +8,12 @@ import 'package:hive_flutter/hive_flutter.dart';
 class ChatCache extends LocalCache {
   static final ChatCache instance = ChatCache._internal();
   static final _box = LocalCache.openedBoxes[MessageType.chats.toString()]!;
-  String? subscriber;
 
   List<String> orderedChats = [];
 
   ChatCache._internal() : super() {
     orderedChats = getOrderedChats() ?? [];
+    print('ChatCache initialized! Has ${orderedChats.length} chats locally');
   }
 
   @override
@@ -30,25 +30,23 @@ class ChatCache extends LocalCache {
   void flush() => _box.flush();
 
   @override
-  Stream<BoxEvent> subscribe(String key) {
-    subscriber = key;
+  Stream<BoxEvent> subscribe(String key, [bool stopCounting = false]) {
     final chatData = _box.get(key);
 
     if (chatData == null) {
-      _box.put(key, ChatData(key, [], hasSubcription: true));
+      _box.put(key, ChatData(key, [], hasSubcription: stopCounting));
     } else {
-      (chatData as ChatData).hasSubscription = true;
+      (chatData as ChatData).hasSubscription = stopCounting;
     }
 
     return _box.watch(key: key);
   }
 
   @override
-  void unsubscribe() {
-    final chatData = _box.get(subscriber) as ChatData;
+  void unsubscribe(String key) {
+    final chatData = _box.get(key) as ChatData;
 
     chatData.hasSubscription = false;
-    subscriber = null;
   }
 
   void resetUnreadCount(String chatId) {
@@ -71,9 +69,8 @@ class ChatCache extends LocalCache {
     if (orderedChats.last != data.identity) {
       orderedChats.remove(data.identity);
       orderedChats.add(data.identity);
+      notifyListeners();
     }
-
-    notifyListeners();
   }
 
   List<ChatMessage> readHistoryMessages(String chatId, {int start = 0}) {

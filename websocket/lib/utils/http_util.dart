@@ -6,20 +6,20 @@ class HttpUtil {
 
   static Future<Map<String, dynamic>> post(String url, {dynamic data}) async {
     final res = await http.post(
-      _baseUri + url,
+      Uri.parse(_baseUri + url),
       headers: {'Content-Type': 'application/json'},
       body: json.encode(data),
     );
 
-    return json.decode(res);
+    return json.decode(res.body);
   }
 
   static Future<Map<String, dynamic>> get(String url) async {
     final res = await http.post(
-      _baseUri + url,
+      Uri.parse(_baseUri + url),
       headers: {'Content-Type': 'application/json'},
     );
 
-    return json.decode(res);
+    return json.decode(res.body);
   }
 }

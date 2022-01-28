@@ -13,9 +13,9 @@ class SocketManager {
 
   static final Map<String, StreamController> _dispatcherControllers = {};
 
-  final WebSocketChannel _channel;
+  WebSocketChannel _channel;
 
-  late final StreamSubscription? _subscription;
+  late StreamSubscription? _subscription;
 
   factory SocketManager() {
     return instance;
@@ -34,28 +34,11 @@ class SocketManager {
       }
     }
 
-    _subscription ??= _channel.stream.listen((data) {
-      final streamData = ReceivedData.fromMap(data);
-
-      // switch (streamData.type) {
-      //   case MessageType.chats:
-      //     dispatcherControllers['chats']?.add(streamData);
-      //     break;
-      //   case MessageType.contacts:
-      //     dispatcherControllers['contacts']?.add(streamData);
-      //     break;
-      //   case MessageType.moments:
-      //     dispatcherControllers['moments']?.add(streamData);
-      //     break;
-      // }
-
-      for (final type in MessageType.values) {
-        if (streamData.type == type) {
-          _dispatcherControllers[type.toString()]?.sink.add(streamData);
-        }
-      }
-    });
+    _subscription ??= listen(_channel);
+    print('connected successfully');
   }
+
+  bool get isConnected => _subscription != null;
 
   void cancel() {
     _subscription?.cancel();
@@ -67,7 +50,43 @@ class SocketManager {
   }
 
   void send(dynamic data) {
+    print('sending data');
     _channel.sink.add(data);
+  }
+
+  void reconnect() {
+    _subscription?.cancel();
+
+    print('reconnecting...');
+    try {
+      _channel = WebSocketChannel.connect(
+          Uri.parse(defaultUri + DataCache.instance.currentUser));
+
+      _subscription = listen(_channel);
+      print('connected successfully');
+    } catch (e) {
+      _subscription = null;
+      Future.delayed(
+        const Duration(seconds: 30),
+        () => reconnect(),
+      );
+    }
+  }
+
+  StreamSubscription listen(WebSocketChannel channel) {
+    return channel.stream.listen(
+      (data) {
+        final streamData = ReceivedData.fromMap(data);
+
+        for (final type in MessageType.values) {
+          if (streamData.type == type) {
+            _dispatcherControllers[type.toString()]?.add(streamData);
+          }
+        }
+      },
+      onDone: () => reconnect(),
+      onError: (_) => reconnect(),
+    );
   }
 
   StreamController operator [](MessageType type) =>
