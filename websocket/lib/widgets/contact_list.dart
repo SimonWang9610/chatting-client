@@ -70,9 +70,6 @@ class _ContactListState extends State<ContactList>
 
   void _logout() {
     // flush and close LocalCache
-    DataCache.clear();
-    ChatCache.close();
-    ContactCache.close();
     LocalCache.close();
 
     // close StreamDispatcher

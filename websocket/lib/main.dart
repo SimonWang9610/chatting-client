@@ -1,13 +1,17 @@
 import 'package:flutter/material.dart';
-import 'package:web_socket_channel/web_socket_channel.dart';
+import 'package:websocket/cache/chat_cache.dart';
+import 'package:websocket/cache/contact_cache.dart';
 import 'package:websocket/cache/data_cache.dart';
-import 'package:websocket/first.dart';
-import 'package:websocket/second.dart';
-import 'package:websocket/widgets/home_screen.dart';
+import 'package:websocket/cache/local_cache.dart';
+
 import 'package:websocket/widgets/login_screen.dart';
 
-void main() {
-  DataCache.init();
+void main() async {
+  await LocalCache.init().then(() {
+    DataCache.init();
+    ChatCache.init();
+    ContactCache.init();
+  });
 
   runApp(const MyApp());
 }

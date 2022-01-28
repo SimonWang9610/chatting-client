@@ -67,8 +67,8 @@ class _LoginScreenState extends State<LoginScreen> {
         DataCache.instance.currentUser = result['name'];
         SocketManager.init();
         ChatDispatcher.init();
-        ContactCache.init();
-        ChatCache.init();
+        // ContactCache.init();
+        // ChatCache.init();
 
         Navigator.of(context).push(
           MaterialPageRoute(

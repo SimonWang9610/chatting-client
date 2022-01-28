@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:websocket/cache/data_cache.dart';
 import '../models/models.dart';
 import 'local_cache.dart';
 
@@ -20,12 +21,12 @@ class ChatCache extends LocalCache {
   static void clear() => _box.clear();
 
   static void close() {
-    _box.put('orderedChats', instance.orderedChats);
+    _box.put(DataCache.instance.currentUser, instance.orderedChats);
+    instance.orderedChats.clear();
     _box.flush();
     _box.close();
   }
 
-  @override
   void flush() => _box.flush();
 
   @override
@@ -90,8 +91,8 @@ class ChatCache extends LocalCache {
 
   // get all existing chats
   List<String>? getOrderedChats() {
-    return _box.get('orderedChats');
+    return _box.get(DataCache.instance.currentUser);
   }
 
-  void saveChats() => _box.put('orderedChats', orderedChats);
+  void saveChats() => _box.put(DataCache.instance.currentUser, orderedChats);
 }
