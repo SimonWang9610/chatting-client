@@ -13,67 +13,68 @@ class SocketManager {
 
   static final Map<String, StreamController> _dispatcherControllers = {};
 
-  WebSocketChannel _channel;
+  WebSocketChannel? _channel;
 
-  late StreamSubscription? _subscription;
+  StreamSubscription? _subscription;
 
   factory SocketManager() {
     return instance;
   }
 
-  SocketManager._internal()
-      : _channel = WebSocketChannel.connect(
-            Uri.parse(defaultUri + DataCache.instance.currentUser)) {
+  SocketManager._internal();
+
+  static void init() {
+    final dispatchers = _dispatcherControllers.keys;
     for (final type in MessageType.values) {
       final key = type.toString();
 
-      if (!_dispatcherControllers.keys.contains(key)) {
+      if (!dispatchers.contains(key)) {
         _dispatcherControllers[key] = key.canBroadcast
             ? StreamController.broadcast()
             : StreamController();
       }
     }
 
-    _subscription ??= listen(_channel);
-    print('connected successfully');
+    connect();
   }
 
-  bool get isConnected => _subscription != null;
-
-  void close() {
-    _subscription?.cancel();
-    _channel.sink.close();
-
+  static void clear() {
     for (final controller in _dispatcherControllers.values) {
       if (!controller.isClosed) controller.close();
     }
+    _dispatcherControllers.clear();
+
+    instance._subscription?.cancel();
+    instance._channel?.sink.close();
   }
+
+  bool get isConnected => _channel != null && _subscription != null;
 
   void send(dynamic data) {
     print('sending data');
-    _channel.sink.add(data);
+    _channel?.sink.add(data);
   }
 
-  void reconnect() {
-    _subscription?.cancel();
+  static void connect() {
+    instance._subscription?.cancel();
 
     print('reconnecting...');
     try {
-      _channel = WebSocketChannel.connect(
+      instance._channel = WebSocketChannel.connect(
           Uri.parse(defaultUri + DataCache.instance.currentUser));
 
-      _subscription = listen(_channel);
+      instance._subscription = listen(instance._channel!);
       print('connected successfully');
     } catch (e) {
-      _subscription = null;
+      instance._subscription = null;
       Future.delayed(
         const Duration(seconds: 30),
-        () => reconnect(),
+        () => connect(),
       );
     }
   }
 
-  StreamSubscription listen(WebSocketChannel channel) {
+  static StreamSubscription listen(WebSocketChannel channel) {
     return channel.stream.listen(
       (data) {
         final streamData = ReceivedData.fromMap(data);
@@ -84,8 +85,8 @@ class SocketManager {
           }
         }
       },
-      onDone: () => reconnect(),
-      onError: (_) => reconnect(),
+      onDone: () => connect(),
+      onError: (_) => connect(),
     );
   }
 

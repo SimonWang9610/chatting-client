@@ -12,17 +12,18 @@ class ContactCache extends LocalCache {
 
   ContactCache._internal();
 
-  @override
-  void clear() => _box.clear();
+  static void init() {
+    instance.subscriber = null;
+  }
 
-  @override
-  void close() {
+  static void clear() => _box.clear();
+
+  static void close() {
     flush();
     _box.close();
   }
 
-  @override
-  void flush() => _box.flush();
+  static void flush() => _box.flush();
 
   @override
   Stream<BoxEvent> subscribe(String key) {

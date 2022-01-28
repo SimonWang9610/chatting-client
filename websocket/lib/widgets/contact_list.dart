@@ -70,15 +70,16 @@ class _ContactListState extends State<ContactList>
 
   void _logout() {
     // flush and close LocalCache
-    ChatCache.instance.close();
-    ContactCache.instance.close();
-    LocalCache.openedBoxes.clear();
+    DataCache.clear();
+    ChatCache.close();
+    ContactCache.close();
+    LocalCache.close();
 
     // close StreamDispatcher
-    ChatDispatcher.instance.close();
+    ChatDispatcher.close();
 
     // close socket
-    SocketManager.instance.close();
+    SocketManager.clear();
 
     Navigator.of(context).pushAndRemoveUntil(
       MaterialPageRoute(

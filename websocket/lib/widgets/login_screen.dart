@@ -64,7 +64,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
       if (result['success']) {
         DataCache.instance.currentUser = result['name'];
-        SocketManager();
+        SocketManager.init();
         ContactCache.instance;
         ChatCache.instance;
 

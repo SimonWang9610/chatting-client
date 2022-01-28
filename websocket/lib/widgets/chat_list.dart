@@ -74,7 +74,7 @@ class _ChatTileState extends State<ChatTile> {
   int _unreadCount = 0;
   ChatMessage? _latestMsg;
 
-  late final StreamSubscription _subscription;
+  late StreamSubscription _subscription;
 
   @override
   void initState() {

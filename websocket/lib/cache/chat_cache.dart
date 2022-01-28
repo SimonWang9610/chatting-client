@@ -11,17 +11,16 @@ class ChatCache extends LocalCache {
 
   List<String> orderedChats = [];
 
-  ChatCache._internal() : super() {
-    orderedChats = getOrderedChats() ?? [];
-    print('ChatCache initialized! Has ${orderedChats.length} chats locally');
+  ChatCache._internal() : super();
+
+  static void init() {
+    instance.orderedChats = instance.getOrderedChats() ?? [];
   }
 
-  @override
-  void clear() => _box.clear();
+  static void clear() => _box.clear();
 
-  @override
-  void close() {
-    _box.put('orderedChats', orderedChats);
+  static void close() {
+    _box.put('orderedChats', instance.orderedChats);
     _box.flush();
     _box.close();
   }
@@ -66,9 +65,9 @@ class ChatCache extends LocalCache {
       (chatData as ChatData).add(msg);
     }
 
-    if (orderedChats.last != data.identity) {
+    if (orderedChats.first != data.identity) {
       orderedChats.remove(data.identity);
-      orderedChats.add(data.identity);
+      orderedChats.insert(0, data.identity);
       notifyListeners();
     }
   }

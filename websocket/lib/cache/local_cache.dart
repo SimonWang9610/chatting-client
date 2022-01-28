@@ -24,10 +24,15 @@ class LocalCache with ChangeNotifier {
     // }
   }
 
-  close() {}
+  static void close() {
+    for (final box in openedBoxes.values) {
+      if (box.isOpen) box.close();
+    }
 
-  clear() => openedBoxes.clear();
-  flush() {}
+    clear();
+  }
+
+  static void clear() => openedBoxes.clear();
 
   Stream<dynamic>? subscribe(String key) {}
   void unsubscribe(String key) {}

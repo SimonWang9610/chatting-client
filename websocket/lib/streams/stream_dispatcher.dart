@@ -16,10 +16,6 @@ abstract class StreamDispatcher<T> with ChangeNotifier {
 
   Stream<ReceivedData> get stream => _controller.stream.cast<ReceivedData>();
 
-  void close() {
-    _controller.close();
-  }
-
   void send(dynamic event) {
     _controller.addSink(event);
   }
@@ -37,7 +33,7 @@ class ChatDispatcher extends StreamDispatcher {
 
   int _totalUnread = 0;
 
-  late final StreamSubscription _subscription;
+  StreamSubscription? _subscription;
 
   ChatDispatcher._() : super(MessageType.chats) {
     // ensure [MessageType.chats] could broadcast its stream
@@ -47,6 +43,18 @@ class ChatDispatcher extends StreamDispatcher {
     _subscription = stream
         .where((data) => data.identity != subscriber?.chatId)
         .listen(caching);
+  }
+
+  static void init() {
+    instance._subscription = instance.stream
+        .where((data) => data.identity != instance.subscriber?.chatId)
+        .listen(instance.caching);
+  }
+
+  static void close() {
+    instance._subscription?.cancel();
+    instance._subscription = null;
+    instance.subscriber = null;
   }
 
   // ! problem: does stream keeps intact if we use [strea.where] twice?
@@ -60,12 +68,6 @@ class ChatDispatcher extends StreamDispatcher {
   @override
   void unsubscribe() {
     subscriber = null;
-  }
-
-  @override
-  void close() {
-    _subscription.cancel();
-    super.close();
   }
 
   @override
