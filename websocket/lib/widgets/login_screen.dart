@@ -3,6 +3,7 @@ import 'package:websocket/cache/chat_cache.dart';
 import 'package:websocket/cache/contact_cache.dart';
 import 'package:websocket/cache/data_cache.dart';
 import 'package:websocket/streams/socket_manager.dart';
+import 'package:websocket/streams/stream_dispatcher.dart';
 import 'package:websocket/utils/http_util.dart';
 import 'package:websocket/widgets/home_screen.dart';
 
@@ -65,8 +66,9 @@ class _LoginScreenState extends State<LoginScreen> {
       if (result['success']) {
         DataCache.instance.currentUser = result['name'];
         SocketManager.init();
-        ContactCache.instance;
-        ChatCache.instance;
+        ChatDispatcher.init();
+        ContactCache.init();
+        ChatCache.init();
 
         Navigator.of(context).push(
           MaterialPageRoute(

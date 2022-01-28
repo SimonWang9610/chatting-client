@@ -35,15 +35,7 @@ class ChatDispatcher extends StreamDispatcher {
 
   StreamSubscription? _subscription;
 
-  ChatDispatcher._() : super(MessageType.chats) {
-    // ensure [MessageType.chats] could broadcast its stream
-    assert(canBroadcastMessageTypes.contains(MessageType.chats.toString()),
-        'Please provide [MessageType.chats] with a [StreamController.broadcast]');
-
-    _subscription = stream
-        .where((data) => data.identity != subscriber?.chatId)
-        .listen(caching);
-  }
+  ChatDispatcher._() : super(MessageType.chats);
 
   static void init() {
     instance._subscription = instance.stream

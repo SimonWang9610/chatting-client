@@ -7,7 +7,7 @@ import 'package:websocket/widgets/home_screen.dart';
 import 'package:websocket/widgets/login_screen.dart';
 
 void main() {
-  DataCache.instance;
+  DataCache.init();
 
   runApp(const MyApp());
 }

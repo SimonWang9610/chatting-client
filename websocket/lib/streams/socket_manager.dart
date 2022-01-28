@@ -58,7 +58,7 @@ class SocketManager {
   static void connect() {
     instance._subscription?.cancel();
 
-    print('reconnecting...');
+    print('connecting...');
     try {
       instance._channel = WebSocketChannel.connect(
           Uri.parse(defaultUri + DataCache.instance.currentUser));
