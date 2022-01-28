@@ -1,6 +1,5 @@
-import 'package:flutter/foundation.dart';
 import 'package:hive/hive.dart';
-import 'package:websocket/widgets/contact_list.dart';
+import 'package:websocket/cache/data_cache.dart';
 import '../models/models.dart';
 import 'local_cache.dart';
 
@@ -46,10 +45,11 @@ class ContactCache extends LocalCache {
   void addNewContact(ReceivedData data) {
     final contact = ContactDetail.fromMap(data.data);
 
-    final contacts = _box.get('allContacts');
+    final contacts = _box.get(DataCache.instance.currentUser);
 
     if (contacts == null) {
-      _box.put('allContacts', ContactData(contacts: [contact]));
+      _box.put(
+          DataCache.instance.currentUser, ContactData(contacts: [contact]));
     } else {
       (contacts as ContactData).add(contact);
     }
@@ -58,10 +58,10 @@ class ContactCache extends LocalCache {
   }
 
   List<ContactDetail> allContacts() {
-    final contacts = _box.get('allContacts');
+    final contacts = _box.get(DataCache.instance.currentUser);
 
     if (contacts == null) {
-      _box.put('allContacts', ContactData());
+      _box.put(DataCache.instance.currentUser, ContactData());
       return [];
     }
     return contacts.contacts;
