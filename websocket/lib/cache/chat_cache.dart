@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:websocket/cache/data_cache.dart';
 import '../models/models.dart';
 import 'local_cache.dart';
@@ -8,9 +7,9 @@ import 'package:hive_flutter/hive_flutter.dart';
 
 class ChatCache extends LocalCache {
   static final ChatCache instance = ChatCache._internal();
-  static final _box = LocalCache.openedBoxes[MessageType.chats.toString()]!;
+  static final _box = LocalCache.openedBoxes[Topic.chats.toString()]!;
 
-  List<String> orderedChats = [];
+  List<Chat> orderedChats = [];
 
   ChatCache._internal() : super();
 
@@ -55,20 +54,21 @@ class ChatCache extends LocalCache {
     chatData.resetunreadCount();
   }
 
-  void cacheChatMessage(ReceivedData data) {
-    final msg = ChatMessage.fromMap(data.data);
+  void cacheChatMessage(EventData event) {
+    final msg = ChatMessage.fromMap(event.data);
+    final chat = Chat(id: event.identity, name: msg.chatName);
 
-    final chatData = _box.get(data.identity);
+    final chatData = _box.get(event.identity);
 
     if (chatData == null) {
-      _box.put(data.identity, ChatData(data.identity, [msg]));
+      _box.put(event.identity, ChatData(event.identity, [msg]));
     } else {
       (chatData as ChatData).add(msg);
     }
-
-    if (orderedChats.first != data.identity) {
-      orderedChats.remove(data.identity);
-      orderedChats.insert(0, data.identity);
+    if (orderedChats.first.id != chat.id) {
+      // avoid repeated chats
+      orderedChats.remove(chat);
+      orderedChats.insert(0, chat);
       notifyListeners();
     }
   }
@@ -90,7 +90,7 @@ class ChatCache extends LocalCache {
   }
 
   // get all existing chats
-  List<String>? getOrderedChats() {
+  List<Chat>? getOrderedChats() {
     return _box.get(DataCache.instance.currentUser);
   }
 

@@ -4,7 +4,7 @@ import 'local_cache.dart';
 
 class DataCache extends LocalCache {
   static final DataCache instance = DataCache._internal();
-  static final _box = LocalCache.openedBoxes[MessageType.data.toString()]!;
+  static final _box = LocalCache.openedBoxes[Topic.data.toString()]!;
 
   String get currentUser => _box.get('user');
 

@@ -17,9 +17,9 @@ class LocalCache with ChangeNotifier {
   }
 
   static init() async {
-    for (final type in MessageType.values) {
-      if (!openedBoxes.keys.contains(type.toString())) {
-        openedBoxes[type.toString()] = await Hive.openBox(type.toString());
+    for (final topic in Topic.values) {
+      if (!openedBoxes.keys.contains(topic.toString())) {
+        openedBoxes[topic.toString()] = await Hive.openBox(topic.toString());
       }
     }
   }

@@ -5,7 +5,7 @@ import 'local_cache.dart';
 
 class ContactCache extends LocalCache {
   static final ContactCache instance = ContactCache._internal();
-  static final _box = LocalCache.openedBoxes[MessageType.contacts.toString()]!;
+  static final _box = LocalCache.openedBoxes[Topic.contacts.toString()]!;
 
   String? subscriber;
 
@@ -42,8 +42,8 @@ class ContactCache extends LocalCache {
     subscriber = null;
   }
 
-  void addNewContact(ReceivedData data) {
-    final contact = ContactDetail.fromMap(data.data);
+  void addNewContact(EventData event) {
+    final contact = ContactDetail.fromMap(event.data);
 
     final contacts = _box.get(DataCache.instance.currentUser);
 

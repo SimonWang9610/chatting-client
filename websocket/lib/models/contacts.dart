@@ -1,28 +1,37 @@
 import 'dart:convert';
 
+import 'package:collection/collection.dart';
+
 class ContactDetail {
-  final String contact;
+  final String name;
+  final bool online;
+
   ContactDetail({
-    required this.contact,
+    required this.name,
+    required this.online,
   });
 
   ContactDetail copyWith({
-    String? contact,
+    String? name,
+    bool? online,
   }) {
     return ContactDetail(
-      contact: contact ?? this.contact,
+      name: name ?? this.name,
+      online: online ?? this.online,
     );
   }
 
   Map<String, dynamic> toMap() {
     return {
-      'contact': contact,
+      'name': name,
+      'online': online,
     };
   }
 
   factory ContactDetail.fromMap(Map<String, dynamic> map) {
     return ContactDetail(
-      contact: map['contact'] ?? '',
+      name: map['name'] ?? '',
+      online: map['online'] ?? false,
     );
   }
 
@@ -32,17 +41,19 @@ class ContactDetail {
       ContactDetail.fromMap(json.decode(source));
 
   @override
-  String toString() => 'ContactDetail(contact: $contact)';
+  String toString() => 'ContactDetail(name: $name, online: $online)';
 
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
 
-    return other is ContactDetail && other.contact == contact;
+    return other is ContactDetail &&
+        other.name == name &&
+        other.online == online;
   }
 
   @override
-  int get hashCode => contact.hashCode;
+  int get hashCode => name.hashCode ^ online.hashCode;
 }
 
 class ContactData {

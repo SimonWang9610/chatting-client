@@ -15,7 +15,7 @@ class ChatList extends StatefulWidget {
 class _ChatListState extends State<ChatList>
     with AutomaticKeepAliveClientMixin {
   final cache = ChatCache.instance;
-  List<String>? chats;
+  List<Chat>? chats;
 
   @override
   bool get wantKeepAlive => true;
@@ -51,7 +51,7 @@ class _ChatListState extends State<ChatList>
           ? ListView.builder(
               itemCount: chats!.length,
               itemBuilder: (context, index) {
-                return ChatTile(chatId: chats![index]);
+                return ChatTile(chat: chats![index]);
               },
             )
           : const Text('No chat found'),
@@ -60,10 +60,10 @@ class _ChatListState extends State<ChatList>
 }
 
 class ChatTile extends StatefulWidget {
-  final String chatId;
+  final Chat chat;
   const ChatTile({
     Key? key,
-    required this.chatId,
+    required this.chat,
   }) : super(key: key);
 
   @override
@@ -79,40 +79,40 @@ class _ChatTileState extends State<ChatTile> {
   @override
   void initState() {
     super.initState();
-    _subscription = _listenChatMessages(widget.chatId);
+    _subscription = _listenChatMessages(widget.chat.id);
   }
 
   @override
   void dispose() {
     _subscription.cancel();
-    ChatCache.instance.unsubscribe(widget.chatId);
+    ChatCache.instance.unsubscribe(widget.chat.id);
     super.dispose();
-    print('!!!${widget.chatId} disposed');
+    print('!!!${widget.chat.id} disposed');
   }
 
   @override
   void didUpdateWidget(ChatTile oldWidget) {
     super.didUpdateWidget(oldWidget);
 
-    if (widget.chatId != oldWidget.chatId) {
+    if (widget.chat.id != widget.chat.id) {
       _subscription.cancel();
-      ChatCache.instance.unsubscribe(oldWidget.chatId);
+      ChatCache.instance.unsubscribe(oldWidget.chat.id);
 
-      _subscription = _listenChatMessages(widget.chatId);
-      print('@@@${oldWidget.chatId} updated to ${widget.chatId}');
+      _subscription = _listenChatMessages(widget.chat.id);
+      print('@@@${oldWidget.chat.id} updated to ${widget.chat.id}');
     }
   }
 
   @override
   void deactivate() {
     super.deactivate();
-    print('---${widget.chatId} deactivated');
+    print('---${widget.chat.id} deactivated');
   }
 
   @override
   void activate() {
     super.activate();
-    print('+++${widget.chatId} activated');
+    print('+++${widget.chat.id} activated');
   }
 
   StreamSubscription _listenChatMessages(String chatId) {
@@ -135,7 +135,10 @@ class _ChatTileState extends State<ChatTile> {
     return GestureDetector(
       onTap: () => Navigator.of(context).push(
         MaterialPageRoute(
-          builder: (_) => ChatScreen(id: widget.chatId),
+          builder: (_) => ChatScreen(
+            id: widget.chat.id,
+            name: widget.chat.name,
+          ),
         ),
       ),
       child: Column(
@@ -155,14 +158,14 @@ class _ChatTileState extends State<ChatTile> {
                     mainAxisAlignment: MainAxisAlignment.start,
                     children: <Widget>[
                       Text(
-                        widget.chatId,
+                        widget.chat.name,
                         style: Theme.of(context).textTheme.subtitle1,
                       ),
                       const SizedBox(
                         height: 8,
                       ),
                       Text(
-                        _latestMsg!.msg,
+                        _latestMsg!.text,
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                         style: Theme.of(context).textTheme.bodyText1,
@@ -177,7 +180,7 @@ class _ChatTileState extends State<ChatTile> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: <Widget>[
                     Text(
-                      _latestMsg!.time.toString(),
+                      _latestMsg!.creation.toString(),
                       style: Theme.of(context).textTheme.overline,
                     ),
                     _unreadCount == 0

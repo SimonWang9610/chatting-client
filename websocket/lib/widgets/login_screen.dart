@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:websocket/cache/chat_cache.dart';
-import 'package:websocket/cache/contact_cache.dart';
 import 'package:websocket/cache/data_cache.dart';
 import 'package:websocket/streams/socket_manager.dart';
-import 'package:websocket/streams/stream_dispatcher.dart';
+import 'package:websocket/streams/chat_dispatcher.dart';
 import 'package:websocket/utils/http_util.dart';
 import 'package:websocket/widgets/home_screen.dart';
 

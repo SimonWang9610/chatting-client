@@ -8,7 +8,7 @@ import 'package:websocket/widgets/login_screen.dart';
 import '../models/models.dart';
 import '../cache/contact_cache.dart';
 import '../utils/http_util.dart';
-import '../streams/stream_dispatcher.dart';
+import '../streams/chat_dispatcher.dart';
 
 class ContactList extends StatefulWidget {
   const ContactList({Key? key}) : super(key: key);
@@ -97,17 +97,20 @@ class NewChat extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-        child: Text(contact.contact),
+        child: Text(contact.name),
         onTap: () async {
           final result = await HttpUtil.post('/chat', data: {
             'first': DataCache.instance.currentUser,
-            'second': contact.contact,
+            'second': contact.name,
           });
 
           if (result['success']) {
             Navigator.of(context).push(
               MaterialPageRoute(
-                builder: (_) => ChatScreen(id: result['chatId']),
+                builder: (_) => ChatScreen(
+                  id: result['chatId'],
+                  name: result['chatName'],
+                ),
               ),
             );
           }

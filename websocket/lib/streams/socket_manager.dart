@@ -7,7 +7,7 @@ import '../models/models.dart';
 import '../utils/extensions.dart' show AsBroadcastController;
 
 class SocketManager {
-  static const String defaultUri = 'ws://localhost:8080/';
+  static const String defaultUri = 'ws://192.168.2.101:8080/';
 
   static final SocketManager instance = SocketManager._internal();
 
@@ -25,7 +25,7 @@ class SocketManager {
 
   static void init() {
     final dispatchers = _dispatcherControllers.keys;
-    for (final type in MessageType.values) {
+    for (final type in Topic.values) {
       final key = type.toString();
 
       if (!dispatchers.contains(key)) {
@@ -77,11 +77,11 @@ class SocketManager {
   static StreamSubscription listen(WebSocketChannel channel) {
     return channel.stream.listen(
       (data) {
-        final streamData = ReceivedData.fromMap(data);
+        final eventData = EventData.fromMap(data);
 
-        for (final type in MessageType.values) {
-          if (streamData.type == type) {
-            _dispatcherControllers[type.toString()]?.add(streamData);
+        for (final topic in Topic.values) {
+          if (eventData.topic == topic) {
+            _dispatcherControllers[topic.toString()]?.add(eventData);
           }
         }
       },
@@ -90,6 +90,6 @@ class SocketManager {
     );
   }
 
-  StreamController operator [](MessageType type) =>
+  StreamController operator [](Topic type) =>
       _dispatcherControllers[type.toString()]!;
 }

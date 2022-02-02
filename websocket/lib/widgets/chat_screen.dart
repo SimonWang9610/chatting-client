@@ -3,16 +3,18 @@ import 'dart:convert';
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import '../streams/stream_dispatcher.dart';
+import '../streams/chat_dispatcher.dart';
 import '../cache/chat_cache.dart';
 import '../cache/data_cache.dart';
 import '../models/models.dart';
 
 class ChatScreen extends StatefulWidget {
   final String id;
+  final String name;
   const ChatScreen({
     Key? key,
     required this.id,
+    required this.name,
   }) : super(key: key);
 
   @override
@@ -77,8 +79,8 @@ class _ChatScreenState extends State<ChatScreen> {
                         final msg = _messages[index];
                         return SingleMessage(
                           sender: msg.sender,
-                          message: msg.msg,
-                          timestamp: msg.time.toString(),
+                          message: msg.text,
+                          timestamp: msg.creation.toString(),
                         );
                       },
                     )
@@ -119,13 +121,14 @@ class _ChatScreenState extends State<ChatScreen> {
                           _messageController.clear();
 
                           final newMsg = ChatMessage(
+                            chatName: widget.name,
                             sender: DataCache.instance.currentUser,
-                            msg: _messageController.text,
-                            time: DateTime.now().toUtc(),
+                            text: _messageController.text,
+                            creation: DateTime.now().toUtc(),
                           );
 
-                          final data = ReceivedData(
-                            type: MessageType.chats,
+                          final data = EventData(
+                            topic: Topic.chats,
                             identity: widget.id,
                             data: newMsg.toMap(),
                           );
