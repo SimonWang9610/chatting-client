@@ -1,17 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:websocket/cache/chat_cache.dart';
-import 'package:websocket/cache/contact_cache.dart';
-import 'package:websocket/cache/data_cache.dart';
-import 'package:websocket/cache/local_cache.dart';
+import 'package:websocket/storage/local_storage.dart';
 
 import 'package:websocket/widgets/login_screen.dart';
 
 void main() async {
-  await LocalCache.init().then(() {
-    DataCache.init();
-    ChatCache.init();
-    ContactCache.init();
-  });
+  LocalStorage.init();
 
   runApp(const MyApp());
 }

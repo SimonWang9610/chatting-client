@@ -5,7 +5,7 @@ import 'local_cache.dart';
 
 class ContactCache extends LocalCache {
   static final ContactCache instance = ContactCache._internal();
-  static final _box = LocalCache.openedBoxes[Topic.contacts.toString()]!;
+  static final _box = LocalCache.openedBoxes[Topic.contact.toString()]!;
 
   String? subscriber;
 

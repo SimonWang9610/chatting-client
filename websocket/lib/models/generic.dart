@@ -4,10 +4,9 @@ import 'dart:convert';
 import 'package:collection/collection.dart';
 
 enum Topic {
-  chats,
-  contacts,
-  moments,
-  data,
+  chat,
+  contact,
+  message,
 }
 
 class EventData {

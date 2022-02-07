@@ -7,7 +7,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 
 class ChatCache extends LocalCache {
   static final ChatCache instance = ChatCache._internal();
-  static final _box = LocalCache.openedBoxes[Topic.chats.toString()]!;
+  static final _box = LocalCache.openedBoxes[Topic.chat.toString()]!;
 
   List<Chat> orderedChats = [];
 
@@ -71,14 +71,6 @@ class ChatCache extends LocalCache {
       orderedChats.insert(0, chat);
       notifyListeners();
     }
-  }
-
-  List<ChatMessage> readHistoryMessages(String chatId, {int start = 0}) {
-    final chatData = _box.get(chatId) as ChatData;
-
-    chatData.resetunreadCount();
-
-    return chatData.historyMessages(start).reversed.toList();
   }
 
   ChatMessage? latestMessage(String chatId) {

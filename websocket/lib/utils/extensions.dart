@@ -1,5 +1,5 @@
 import 'dart:async';
-import '../streams/socket_manager.dart';
+import '../streams/archive/socket_manager.dart';
 import 'constants.dart';
 
 extension AddSink on StreamController {

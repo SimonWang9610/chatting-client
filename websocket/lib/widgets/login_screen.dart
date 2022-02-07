@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:websocket/cache/data_cache.dart';
-import 'package:websocket/streams/socket_manager.dart';
-import 'package:websocket/streams/chat_dispatcher.dart';
+import 'package:websocket/storage/constants.dart';
+import 'package:websocket/storage/local_storage.dart';
 import 'package:websocket/utils/http_util.dart';
 import 'package:websocket/widgets/home_screen.dart';
 
@@ -62,11 +61,7 @@ class _LoginScreenState extends State<LoginScreen> {
       );
 
       if (result['success']) {
-        DataCache.instance.currentUser = result['name'];
-        SocketManager.init();
-        ChatDispatcher.init();
-        // ContactCache.init();
-        // ChatCache.init();
+        LocalStorage.write(USER, result['username']);
 
         Navigator.of(context).push(
           MaterialPageRoute(

@@ -1,14 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:websocket/cache/chat_cache.dart';
-import 'package:websocket/cache/data_cache.dart';
-import 'package:websocket/cache/local_cache.dart';
-import 'package:websocket/streams/socket_manager.dart';
+import 'package:websocket/storage/local_storage.dart';
 import 'package:websocket/widgets/chat_screen.dart';
 import 'package:websocket/widgets/login_screen.dart';
 import '../models/models.dart';
-import '../cache/contact_cache.dart';
 import '../utils/http_util.dart';
-import '../streams/chat_dispatcher.dart';
+
+import '../pools/pools.dart';
+import '../storage/constants.dart';
 
 class ContactList extends StatefulWidget {
   const ContactList({Key? key}) : super(key: key);
@@ -19,7 +17,8 @@ class ContactList extends StatefulWidget {
 
 class _ContactListState extends State<ContactList>
     with AutomaticKeepAliveClientMixin {
-  List<ContactDetail> _contacts = [];
+  List<ContactDetail> _onlineContacts = [];
+  List<ContactDetail> _offlineContacts = [];
 
   @override
   bool get wantKeepAlive => true;
@@ -27,14 +26,36 @@ class _ContactListState extends State<ContactList>
   @override
   void initState() {
     super.initState();
-    _contacts = ContactCache.instance.allContacts();
 
-    ContactCache.instance.addListener(_updateContacts);
+    for (final contact in ContactPool.instance.contacts) {
+      if (contact.online) {
+        _onlineContacts.add(contact);
+      } else {
+        _offlineContacts.add(contact);
+      }
+    }
+
+    ContactPool.instance.addListener(_updateContacts);
   }
 
   void _updateContacts() {
-    _contacts = ContactCache.instance.allContacts();
-    setState(() {});
+    final contact = ContactPool.instance.lastContact;
+
+    if (contact != null) {
+      if (contact.online) {
+        _onlineContacts.add(contact);
+      } else {
+        _offlineContacts.add(contact);
+      }
+
+      setState(() {});
+    }
+  }
+
+  @override
+  void dispose() {
+    ContactPool.instance.removeListener(_updateContacts);
+    super.dispose();
   }
 
   @override
@@ -48,20 +69,18 @@ class _ContactListState extends State<ContactList>
             icon: const Icon(Icons.logout),
           ),
         ],
+        bottom: const TabBar(
+          tabs: [
+            Icon(Icons.online_prediction),
+            Icon(Icons.offline_bolt),
+          ],
+        ),
       ),
-      body: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.center,
+      body: TabBarView(
         children: [
-          Expanded(
-            child: _contacts.isNotEmpty
-                ? ListView.builder(
-                    itemCount: _contacts.length,
-                    itemBuilder: (_, index) {
-                      return NewChat(contact: _contacts[index]);
-                    },
-                  )
-                : const Text('No active users'),
+          ContactTabList(contacts: _onlineContacts),
+          ContactTabList(
+            contacts: _offlineContacts,
           ),
         ],
       ),
@@ -69,20 +88,41 @@ class _ContactListState extends State<ContactList>
   }
 
   void _logout() {
-    // flush and close LocalCache
-    LocalCache.close();
+    LocalStorage.clear();
 
-    // close StreamDispatcher
-    ChatDispatcher.close();
-
-    // close socket
-    SocketManager.clear();
+    ChatPool.instance.removeHook();
 
     Navigator.of(context).pushAndRemoveUntil(
       MaterialPageRoute(
         builder: (_) => const LoginScreen(),
       ),
       (route) => false,
+    );
+  }
+}
+
+class ContactTabList extends StatelessWidget {
+  final List<ContactDetail> contacts;
+
+  const ContactTabList({
+    Key? key,
+    required this.contacts,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Expanded(
+          child: ListView.builder(
+            itemCount: contacts.length,
+            itemBuilder: (_, index) {
+              return NewChat(contact: contacts[index]);
+            },
+          ),
+        ),
+      ],
     );
   }
 }
@@ -100,8 +140,8 @@ class NewChat extends StatelessWidget {
         child: Text(contact.name),
         onTap: () async {
           final result = await HttpUtil.post('/chat', data: {
-            'first': DataCache.instance.currentUser,
-            'second': contact.name,
+            'topic': 'Topic.chat',
+            'members': [contact.name, LocalStorage.read(USER)!]
           });
 
           if (result['success']) {

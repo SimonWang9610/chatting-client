@@ -3,8 +3,8 @@ import 'dart:async';
 import 'package:web_socket_channel/web_socket_channel.dart';
 import 'package:websocket/cache/data_cache.dart';
 
-import '../models/models.dart';
-import '../utils/extensions.dart' show AsBroadcastController;
+import '../../models/models.dart';
+import '../../utils/extensions.dart' show AsBroadcastController;
 
 class SocketManager {
   static const String defaultUri = 'ws://192.168.2.101:8080/';

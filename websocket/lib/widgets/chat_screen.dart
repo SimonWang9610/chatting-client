@@ -1,12 +1,11 @@
 import 'dart:math' as math;
-import 'dart:convert';
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import '../streams/chat_dispatcher.dart';
-import '../cache/chat_cache.dart';
-import '../cache/data_cache.dart';
+import 'package:websocket/storage/local_storage.dart';
 import '../models/models.dart';
+import '../pools/pools.dart';
+import '../storage/constants.dart';
 
 class ChatScreen extends StatefulWidget {
   final String id;
@@ -27,31 +26,24 @@ class _ChatScreenState extends State<ChatScreen> {
 
   bool textFocusActive = false;
   List<ChatMessage> _messages = [];
-  int _historyMessagesCount = 0;
+  int _readCount = 0;
 
   @override
   void initState() {
     super.initState();
-    ChatDispatcher.instance.subscribe(widget.id);
 
-    _messages = ChatCache.instance.readHistoryMessages(widget.id);
+    _subscription = MessagePool.instance.watch(widget.id).listen((msg) {
+      _messages.add(msg);
+      _readCount = _messages.length;
 
-    _historyMessagesCount = _messages.length;
-
-    _subscription =
-        ChatCache.instance.subscribe(widget.id, true).listen((event) {
-      final chatData = event.value as ChatData;
-
-      _messages.add(chatData.last);
       setState(() {});
     });
   }
 
   @override
   void dispose() {
-    ChatDispatcher.instance.unsubscribe();
     _subscription.cancel();
-    ChatCache.instance.unsubscribe(widget.id);
+    MessagePool.instance.unwatch();
 
     super.dispose();
   }
@@ -71,18 +63,21 @@ class _ChatScreenState extends State<ChatScreen> {
           children: [
             Expanded(
               child: _messages.isNotEmpty
-                  ? ListView.builder(
-                      reverse: true,
-                      shrinkWrap: true,
-                      itemCount: _messages.length,
-                      itemBuilder: (context, index) {
-                        final msg = _messages[index];
-                        return SingleMessage(
-                          sender: msg.sender,
-                          message: msg.text,
-                          timestamp: msg.creation.toString(),
-                        );
-                      },
+                  ? RefreshIndicator(
+                      child: ListView.builder(
+                        reverse: true,
+                        shrinkWrap: true,
+                        itemCount: _messages.length,
+                        itemBuilder: (context, index) {
+                          final msg = _messages[index];
+                          return SingleMessage(
+                            sender: msg.sender,
+                            message: msg.text,
+                            timestamp: msg.creation.toString(),
+                          );
+                        },
+                      ),
+                      onRefresh: _loadHsitoryMessage,
                     )
                   : const Text('No history message'),
             ),
@@ -122,25 +117,18 @@ class _ChatScreenState extends State<ChatScreen> {
 
                           final newMsg = ChatMessage(
                             chatName: widget.name,
-                            sender: DataCache.instance.currentUser,
+                            sender: LocalStorage.read(USER)!,
                             text: _messageController.text,
                             creation: DateTime.now().toUtc(),
                           );
 
-                          final data = EventData(
-                            topic: Topic.chats,
+                          final event = EventData(
+                            topic: Topic.chat,
                             identity: widget.id,
                             data: newMsg.toMap(),
                           );
 
-                          // final data = {
-                          //   'type': MessageType.chats.toString(),
-                          //   'identity': widget.id,
-                          //   'data': newMsg.toMap(),
-                          // };
-
-                          ChatDispatcher.instance
-                              .send(json.encode(data.toMap()));
+                          MessagePool.instance.send(event);
                         },
                         icon: textFocusActive
                             ? Transform.rotate(
@@ -184,13 +172,14 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 
-  void _readMoreCachedMessages() {
-    final historyMessages = ChatCache.instance
-        .readHistoryMessages(widget.id, start: _historyMessagesCount);
+  Future<void> _loadHsitoryMessage() async {
+    final history = MessagePool.instance.loadHistory(_readCount);
 
-    _messages = [...historyMessages, ..._messages];
-    _historyMessagesCount = _historyMessagesCount + historyMessages.length;
-    setState(() {});
+    if (history != null) {
+      _messages = [...history, ..._messages];
+      _readCount = _messages.length;
+      setState(() {});
+    }
   }
 }
 
@@ -216,17 +205,17 @@ class SingleMessage extends StatelessWidget {
         right: 16.0,
       ),
       child: Column(
-        crossAxisAlignment: DataCache.instance.currentUser == sender
+        crossAxisAlignment: LocalStorage.read(USER)! == sender
             ? CrossAxisAlignment.end
             : CrossAxisAlignment.start,
         children: [
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: DataCache.instance.currentUser == sender
+            mainAxisAlignment: LocalStorage.read(USER)! == sender
                 ? MainAxisAlignment.end
                 : MainAxisAlignment.start,
             children: [
-              Text(DataCache.instance.currentUser == sender ? 'You' : sender),
+              Text(LocalStorage.read(USER)! == sender ? 'You' : sender),
               const SizedBox(
                 width: 8.0,
               ),
@@ -239,24 +228,23 @@ class SingleMessage extends StatelessWidget {
           Material(
             borderRadius: BorderRadius.only(
               bottomLeft: const Radius.circular(50),
-              topLeft: DataCache.instance.currentUser == sender
+              topLeft: LocalStorage.read(USER)! == sender
                   ? const Radius.circular(50)
                   : const Radius.circular(0),
               bottomRight: const Radius.circular(50),
-              topRight: DataCache.instance.currentUser == sender
+              topRight: LocalStorage.read(USER)! == sender
                   ? const Radius.circular(0)
                   : const Radius.circular(50),
             ),
-            color: DataCache.instance.currentUser == sender
-                ? Colors.blue
-                : Colors.white,
+            color:
+                LocalStorage.read(USER)! == sender ? Colors.blue : Colors.white,
             elevation: 5,
             child: Padding(
               padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
               child: Text(
                 message,
                 style: TextStyle(
-                  color: DataCache.instance.currentUser == sender
+                  color: LocalStorage.read(USER)! == sender
                       ? Colors.white
                       : Colors.blue,
                   fontFamily: 'Poppins',

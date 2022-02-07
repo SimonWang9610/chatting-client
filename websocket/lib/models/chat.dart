@@ -1,7 +1,9 @@
+import 'dart:async';
 import 'dart:convert';
 
-import 'package:collection/collection.dart';
-import 'package:websocket/cache/data_cache.dart';
+import 'package:websocket/storage/local_storage.dart';
+
+import '../storage/constants.dart';
 
 class ChatMessage {
   final String chatName;
@@ -78,11 +80,12 @@ class ChatMessage {
 }
 
 class ChatData {
+  StreamController? _controller;
+
   final String chatId;
   final List<ChatMessage> messages;
   int unreadCount = 0;
   bool _hasSubscription = false;
-  List<ChatMessage> reversedMessages = [];
 
   ChatData(this.chatId, this.messages, {bool hasSubcription = false})
       : _hasSubscription = hasSubcription;
@@ -92,8 +95,14 @@ class ChatData {
   void add(ChatMessage msg) {
     messages.add(msg);
 
-    if (!_hasSubscription && msg.sender != DataCache.instance.currentUser) {
-      unreadCount += 1;
+    if (!_hasSubscription) {
+      if (LocalStorage.read(USER) != msg.sender) {
+        unreadCount += 1;
+      }
+    }
+
+    if (_hasSubscription) {
+      _controller?.add(msg);
     }
   }
 
@@ -107,19 +116,60 @@ class ChatData {
     }
   }
 
-  List<ChatMessage> historyMessages(int start, [int step = 10]) {
-    if (reversedMessages.isEmpty || reversedMessages.length < messages.length) {
-      reversedMessages = messages.reversed.toList();
+  List<ChatMessage>? loadHistory(int readCount, [int step = HISTORY_STEP]) {
+    final end = messages.length - readCount;
+    final start = end - HISTORY_STEP > 0 ? end - HISTORY_STEP : 0;
+
+    if (end != 0 && start != end) {
+      return messages.getRange(start, end).toList();
+    }
+  }
+
+  ChatAbstract get abstract {
+    ChatMessage? msg;
+    if (messages.isNotEmpty) {
+      msg = messages.last;
     }
 
-    final end = start + step < reversedMessages.length
-        ? start + step
-        : reversedMessages.length;
-
-    return reversedMessages.sublist(start, end);
+    return ChatAbstract(unread: unreadCount, msg: msg);
   }
 
   ChatMessage get last => messages.last;
+
+  Stream<ChatMessage> subcribe() {
+    _hasSubscription = true;
+    _controller = StreamController();
+
+    unreadCount = 0;
+
+    pushHistoryMessages();
+
+    return _controller!.stream.cast();
+  }
+
+  void unsubcribe() {
+    _hasSubscription = false;
+    _controller?.close();
+    _controller = null;
+  }
+
+  void pushHistoryMessages() {
+    final start =
+        messages.length - HISTORY_STEP > 0 ? messages.length - HISTORY_STEP : 0;
+
+    _controller?.addStream(
+      Stream.fromIterable(
+        messages.getRange(start, messages.length),
+      ),
+    );
+  }
+}
+
+class ChatAbstract {
+  final int unread;
+  final ChatMessage? msg;
+
+  ChatAbstract({this.unread = 0, this.msg});
 }
 
 class Chat {
@@ -128,7 +178,9 @@ class Chat {
   Chat({
     required this.id,
     required this.name,
+    this.description,
   });
+  ChatAbstract? description;
 
   Chat copyWith({
     String? id,

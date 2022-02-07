@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:collection/collection.dart';
@@ -61,6 +62,8 @@ class ContactData {
   int newContactCount = 0;
   bool _hasSubscription = false;
 
+  StreamController? _controller;
+
   ContactData({List<ContactDetail> contacts = const []}) : _contacts = contacts;
 
   set hasSubscription(bool value) => _hasSubscription = value;
@@ -71,7 +74,26 @@ class ContactData {
     if (!_hasSubscription) {
       newContactCount += 1;
     }
+
+    if (_hasSubscription) {
+      _controller?.add(contact);
+    }
   }
 
   List<ContactDetail> get contacts => _contacts;
+
+  Stream<ContactDetail> subscribe() {
+    _hasSubscription = true;
+    _controller = StreamController();
+
+    _controller?.addStream(Stream.fromIterable(_contacts));
+
+    return _controller!.stream.cast();
+  }
+
+  void unsubscribe() {
+    _hasSubscription = false;
+    _controller?.close();
+    _controller = null;
+  }
 }

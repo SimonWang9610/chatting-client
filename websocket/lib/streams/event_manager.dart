@@ -1,0 +1,78 @@
+import 'dart:async';
+
+import 'package:web_socket_channel/web_socket_channel.dart';
+import 'package:websocket/cache/data_cache.dart';
+
+import '../models/models.dart';
+import '../pools/pools.dart';
+
+class EventManager {
+  static const String defaultUri = 'ws://192.168.2.101:8080/';
+
+  static final EventManager instance = EventManager._internal();
+
+  WebSocketChannel? _channel;
+
+  StreamSubscription? _subscription;
+
+  factory EventManager() {
+    return instance;
+  }
+
+  EventManager._internal();
+
+  static void init({String? uri}) => connect(uri: uri);
+
+  static void clear() {}
+
+  bool get isConnected => _channel != null && _subscription != null;
+
+  void send(dynamic data) {
+    print('sending data');
+    _channel?.sink.add(data);
+  }
+
+  static void connect({String? uri}) {
+    final url = uri != null
+        ? Uri.parse(uri)
+        : Uri.parse(defaultUri + DataCache.instance.currentUser);
+
+    instance._subscription?.cancel();
+
+    print('connecting...');
+    try {
+      instance._channel = WebSocketChannel.connect(url);
+
+      instance._subscription = listen(instance._channel!);
+      print('connected successfully');
+    } catch (e) {
+      instance._subscription = null;
+      Future.delayed(
+        const Duration(seconds: 30),
+        () => connect(uri: uri),
+      );
+    }
+  }
+
+  static StreamSubscription listen(WebSocketChannel channel) {
+    return channel.stream.listen(
+      (data) {
+        final eventData = EventData.fromMap(data);
+
+        switch (eventData.topic) {
+          case Topic.chat:
+            ChatPool.instance.add(eventData);
+            break;
+          case Topic.message:
+            MessagePool.instance.add(eventData);
+            break;
+          case Topic.contact:
+            ContactPool.instance.add(eventData);
+            break;
+        }
+      },
+      onDone: () => connect(),
+      onError: (_) => connect(),
+    );
+  }
+}
