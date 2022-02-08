@@ -14,6 +14,7 @@ class MessagePool with ChangeNotifier {
   final MessagePoolContainer _pool = {};
   String? subscriber;
   EventData? lastEvent;
+  int unreadCount = 0;
 
   void add(EventData event) {
     lastEvent = event;
@@ -24,6 +25,10 @@ class MessagePool with ChangeNotifier {
       _pool[event.identity]?.add(msg);
     } else {
       _pool[event.identity] = ChatData(event.identity, [msg]);
+    }
+
+    if (event.identity != subscriber) {
+      unreadCount += 1;
     }
 
     notifyListeners();
@@ -39,6 +44,10 @@ class MessagePool with ChangeNotifier {
     if (!_pool.containsKey(chatId)) {
       _pool[chatId] = ChatData(chatId, const []);
     }
+
+    unreadCount -= _pool[chatId]!.unreadCount;
+
+    notifyListeners();
 
     return _pool[chatId]!.subcribe();
   }

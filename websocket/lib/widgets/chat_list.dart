@@ -54,7 +54,7 @@ class _ChatListState extends State<ChatList>
                 final last = MessagePool.instance.lastMessage(chat.id);
 
                 return ListTile(
-                  title: Text(chat.name),
+                  title: Text(chat.id),
                   subtitle: last.msg != null
                       ? Text(last.msg!.text)
                       : const Text('No Message'),

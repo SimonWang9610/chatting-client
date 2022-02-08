@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:websocket/storage/constants.dart';
 import 'package:websocket/storage/local_storage.dart';
+import 'package:websocket/streams/event_manager.dart';
 import 'package:websocket/utils/http_util.dart';
 import 'package:websocket/widgets/home_screen.dart';
 
@@ -63,11 +64,23 @@ class _LoginScreenState extends State<LoginScreen> {
       if (result['success']) {
         LocalStorage.write(USER, result['username']);
 
+        EventManager.init();
+
         Navigator.of(context).push(
           MaterialPageRoute(
             builder: (_) => const HomeScreen(),
           ),
         );
+      } else {
+        showDialog(
+          context: context,
+          builder: (_) {
+            return const Card(
+              child: Text('Username has been taken'),
+            );
+          },
+        );
+        _focus.requestFocus();
       }
     }
   }

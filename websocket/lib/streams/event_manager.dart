@@ -23,7 +23,10 @@ class EventManager {
 
   static void init({String? uri}) => connect(uri: uri);
 
-  static void clear() {}
+  void close() {
+    _subscription?.cancel();
+    _channel?.sink.close();
+  }
 
   bool get isConnected => _channel != null && _subscription != null;
 

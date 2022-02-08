@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:websocket/storage/local_storage.dart';
+import 'package:websocket/streams/event_manager.dart';
 import 'package:websocket/widgets/chat_screen.dart';
 import 'package:websocket/widgets/login_screen.dart';
 import '../models/models.dart';
@@ -92,6 +93,8 @@ class _ContactListState extends State<ContactList>
 
     ChatPool.instance.removeHook();
 
+    EventManager.instance.close();
+
     Navigator.of(context).pushAndRemoveUntil(
       MaterialPageRoute(
         builder: (_) => const LoginScreen(),
@@ -141,6 +144,7 @@ class NewChat extends StatelessWidget {
         onTap: () async {
           final result = await HttpUtil.post('/chat', data: {
             'topic': 'Topic.chat',
+            'name': contact.name,
             'members': [contact.name, LocalStorage.read(USER)!]
           });
 
