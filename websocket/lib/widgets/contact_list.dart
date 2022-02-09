@@ -17,9 +17,11 @@ class ContactList extends StatefulWidget {
 }
 
 class _ContactListState extends State<ContactList>
-    with AutomaticKeepAliveClientMixin {
-  List<ContactDetail> _onlineContacts = [];
-  List<ContactDetail> _offlineContacts = [];
+    with AutomaticKeepAliveClientMixin, SingleTickerProviderStateMixin {
+  final List<ContactDetail> _onlineContacts = [];
+  final List<ContactDetail> _offlineContacts = [];
+
+  late final TabController _controller;
 
   @override
   bool get wantKeepAlive => true;
@@ -27,6 +29,7 @@ class _ContactListState extends State<ContactList>
   @override
   void initState() {
     super.initState();
+    _controller = TabController(length: 2, vsync: this);
 
     for (final contact in ContactPool.instance.contacts) {
       if (contact.online) {
@@ -70,14 +73,16 @@ class _ContactListState extends State<ContactList>
             icon: const Icon(Icons.logout),
           ),
         ],
-        bottom: const TabBar(
-          tabs: [
+        bottom: TabBar(
+          controller: _controller,
+          tabs: const [
             Icon(Icons.online_prediction),
             Icon(Icons.offline_bolt),
           ],
         ),
       ),
       body: TabBarView(
+        controller: _controller,
         children: [
           ContactTabList(contacts: _onlineContacts),
           ContactTabList(

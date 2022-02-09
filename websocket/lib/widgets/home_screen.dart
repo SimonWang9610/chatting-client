@@ -56,11 +56,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         items: [
           const BottomNavigationBarItem(
             icon: Icon(Icons.home),
+            label: 'Contact',
           ),
           BottomNavigationBarItem(
             icon: Badge(
               shape: BadgeShape.circle,
-              position: BadgePosition.center(),
+              position: BadgePosition.topStart(),
               borderRadius: BorderRadius.circular(100),
               child: const Icon(Icons.message),
               badgeContent: _unreadCount != 0
@@ -75,6 +76,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     )
                   : null,
             ),
+            label: 'Message',
           ),
         ],
         onTap: (index) {

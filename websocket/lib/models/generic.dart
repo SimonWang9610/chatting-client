@@ -44,7 +44,7 @@ class EventData {
     late Topic topic;
 
     for (final value in Topic.values) {
-      if (map['topic'] == value.toString().split('.').last) {
+      if (map['topic'] == value.toString()) {
         topic = value;
       }
     }
@@ -58,8 +58,11 @@ class EventData {
 
   String toJson() => json.encode(toMap());
 
-  factory EventData.fromJson(String source) =>
-      EventData.fromMap(json.decode(source));
+  factory EventData.fromJson(String source) {
+    final map = json.decode(source);
+    print('Event map: $map');
+    return EventData.fromMap(map);
+  }
 
   @override
   String toString() =>

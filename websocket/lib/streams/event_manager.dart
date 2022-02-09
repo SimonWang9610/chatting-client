@@ -1,13 +1,13 @@
 import 'dart:async';
 
 import 'package:web_socket_channel/web_socket_channel.dart';
-import 'package:websocket/cache/data_cache.dart';
-
+import 'package:websocket/storage/local_storage.dart';
+import '../storage/constants.dart';
 import '../models/models.dart';
 import '../pools/pools.dart';
 
 class EventManager {
-  static const String defaultUri = 'ws://192.168.2.101:8080/';
+  static const String defaultUri = 'ws://localhost:8080/';
 
   static final EventManager instance = EventManager._internal();
 
@@ -21,7 +21,10 @@ class EventManager {
 
   EventManager._internal();
 
-  static void init({String? uri}) => connect(uri: uri);
+  static void init({String? uri}) {
+    instance.close();
+    connect(uri: uri);
+  }
 
   void close() {
     _subscription?.cancel();
@@ -38,7 +41,7 @@ class EventManager {
   static void connect({String? uri}) {
     final url = uri != null
         ? Uri.parse(uri)
-        : Uri.parse(defaultUri + DataCache.instance.currentUser);
+        : Uri.parse(defaultUri + LocalStorage.read(USER)!);
 
     instance._subscription?.cancel();
 
@@ -47,6 +50,7 @@ class EventManager {
       instance._channel = WebSocketChannel.connect(url);
 
       instance._subscription = listen(instance._channel!);
+
       print('connected successfully');
     } catch (e) {
       instance._subscription = null;
@@ -60,7 +64,9 @@ class EventManager {
   static StreamSubscription listen(WebSocketChannel channel) {
     return channel.stream.listen(
       (data) {
-        final eventData = EventData.fromMap(data);
+        final eventData = EventData.fromJson(data);
+
+        print('Got Event: ${eventData.toString()}');
 
         switch (eventData.topic) {
           case Topic.chat:

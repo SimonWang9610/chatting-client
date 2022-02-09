@@ -20,30 +20,45 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        width: 400,
-        height: 400,
-        child: Center(
-          child: Form(
-            key: _formKey,
-            child: TextFormField(
-              controller: _controller,
-              focusNode: _focus,
-              decoration: const InputDecoration(
-                border: OutlineInputBorder(),
-                labelText: 'Enter your name',
-                icon: Icon(
-                  Icons.people,
-                  color: Colors.blue,
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          const SizedBox(
+            height: 40.0,
+          ),
+          Container(
+            width: 400,
+            height: 400,
+            child: Center(
+              child: Form(
+                key: _formKey,
+                child: TextFormField(
+                  controller: _controller,
+                  focusNode: _focus,
+                  decoration: const InputDecoration(
+                    border: OutlineInputBorder(),
+                    labelText: 'Enter your name',
+                    icon: Icon(
+                      Icons.people,
+                      color: Colors.blue,
+                    ),
+                  ),
+                  validator: (v) {
+                    return v!.isEmpty ? 'Name required' : null;
+                  },
+                  onFieldSubmitted: (v) => _login,
                 ),
               ),
-              validator: (v) {
-                return v!.isEmpty ? 'Name required' : null;
-              },
-              onFieldSubmitted: (v) => _login,
             ),
           ),
-        ),
+          const SizedBox(
+            height: 20.0,
+          ),
+          TextButton(
+            onPressed: _login,
+            child: const Text('Login'),
+          ),
+        ],
       ),
     );
   }
@@ -61,15 +76,18 @@ class _LoginScreenState extends State<LoginScreen> {
         data: {'name': _controller.text},
       );
 
+      print('login result: $result');
+
       if (result['success']) {
         LocalStorage.write(USER, result['username']);
 
         EventManager.init();
 
-        Navigator.of(context).push(
+        Navigator.of(context).pushAndRemoveUntil(
           MaterialPageRoute(
             builder: (_) => const HomeScreen(),
           ),
+          (route) => false,
         );
       } else {
         showDialog(

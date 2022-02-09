@@ -64,7 +64,7 @@ class ContactData {
 
   StreamController? _controller;
 
-  ContactData({List<ContactDetail> contacts = const []}) : _contacts = contacts;
+  ContactData({List<ContactDetail>? contacts}) : _contacts = contacts ?? [];
 
   set hasSubscription(bool value) => _hasSubscription = value;
 
