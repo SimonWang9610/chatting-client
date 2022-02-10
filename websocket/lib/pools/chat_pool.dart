@@ -12,12 +12,22 @@ class ChatPool with ChangeNotifier {
 
   final ChatPoolContainer _pool = [];
 
+  void newChat(Map<String, dynamic> map) {
+    final chat = Chat.fromMap(map);
+
+    if (!_pool.contains(chat)) {
+      _pool.add(chat);
+      notifyListeners();
+    }
+  }
+
   void add(EventData event) {
     final chat = Chat.fromMap(event.data);
 
-    _pool.add(chat);
-
-    notifyListeners();
+    if (!_pool.contains(chat)) {
+      _pool.add(chat);
+      notifyListeners();
+    }
   }
 
   void addHook() {
@@ -29,7 +39,13 @@ class ChatPool with ChangeNotifier {
 
     if (event!.identity != _pool.last.id) {
       _pool.removeWhere((chat) => chat.id == event.identity);
-      _pool.add(Chat(id: event.identity, name: event.data['chatName']));
+      _pool.add(
+        Chat(
+          id: event.identity,
+          name: event.data['chatName'],
+          members: event.data['members'],
+        ),
+      );
     }
     notifyListeners();
   }

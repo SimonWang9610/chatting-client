@@ -29,25 +29,23 @@ class _LoginScreenState extends State<LoginScreen> {
           Container(
             width: 400,
             height: 400,
-            child: Center(
-              child: Form(
-                key: _formKey,
-                child: TextFormField(
-                  controller: _controller,
-                  focusNode: _focus,
-                  decoration: const InputDecoration(
-                    border: OutlineInputBorder(),
-                    labelText: 'Enter your name',
-                    icon: Icon(
-                      Icons.people,
-                      color: Colors.blue,
-                    ),
+            child: Form(
+              key: _formKey,
+              child: TextFormField(
+                controller: _controller,
+                focusNode: _focus,
+                decoration: const InputDecoration(
+                  border: OutlineInputBorder(),
+                  labelText: 'Enter your name',
+                  icon: Icon(
+                    Icons.people,
+                    color: Colors.blue,
                   ),
-                  validator: (v) {
-                    return v!.isEmpty ? 'Name required' : null;
-                  },
-                  onFieldSubmitted: (v) => _login,
                 ),
+                validator: (v) {
+                  return v!.isEmpty ? 'Name required' : null;
+                },
+                onFieldSubmitted: (v) => _login,
               ),
             ),
           ),

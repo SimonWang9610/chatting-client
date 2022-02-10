@@ -145,24 +145,38 @@ class NewChat extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-        child: Text(contact.name),
-        onTap: () async {
-          final result = await HttpUtil.post('/chat', data: {
-            'topic': 'Topic.chat',
-            'name': contact.name,
-            'members': [contact.name, LocalStorage.read(USER)!]
-          });
-
-          if (result['success']) {
-            Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (_) => ChatScreen(
-                  id: result['chatId'],
-                  name: result['chatName'],
-                ),
-              ),
-            );
-          }
+      child: Card(
+        child: Container(
+          width: 400,
+          height: 100,
+          decoration: BoxDecoration(
+            border: Border.all(
+              color: Colors.black,
+            ),
+          ),
+          child: Text(contact.name),
+        ),
+      ),
+      onTap: () async {
+        final result = await HttpUtil.post('/chat', data: {
+          'topic': 'Topic.chat',
+          'name': contact.name,
+          'members': [contact.name, LocalStorage.read(USER)!]
         });
+
+        if (result['success']) {
+          ChatPool.instance.newChat(result);
+
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (_) => ChatScreen(
+                id: result['id'],
+                name: result['name'],
+              ),
+            ),
+          );
+        }
+      },
+    );
   }
 }

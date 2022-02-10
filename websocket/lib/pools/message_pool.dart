@@ -42,7 +42,7 @@ class MessagePool with ChangeNotifier {
     subscriber = chatId;
 
     if (!_pool.containsKey(chatId)) {
-      _pool[chatId] = ChatData(chatId, const []);
+      _pool[chatId] = ChatData(chatId, []);
     }
 
     unreadCount -= _pool[chatId]!.unreadCount;

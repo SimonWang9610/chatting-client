@@ -32,11 +32,15 @@ class _ChatScreenState extends State<ChatScreen> {
   void initState() {
     super.initState();
 
-    _subscription = MessagePool.instance.watch(widget.id).listen((msg) {
-      _messages.add(msg);
-      _readCount = _messages.length;
+    WidgetsBinding.instance?.addPostFrameCallback((_) {
+      _subscription = MessagePool.instance.watch(widget.id).listen((msg) {
+        _messages.insert(0, msg);
+        _readCount = _messages.length;
 
-      setState(() {});
+        if (mounted) {
+          setState(() {});
+        }
+      });
     });
   }
 
@@ -113,8 +117,6 @@ class _ChatScreenState extends State<ChatScreen> {
                     children: <Widget>[
                       IconButton(
                         onPressed: () {
-                          _messageController.clear();
-
                           final newMsg = ChatMessage(
                             chatName: widget.name,
                             sender: LocalStorage.read(USER)!,
@@ -123,10 +125,12 @@ class _ChatScreenState extends State<ChatScreen> {
                           );
 
                           final event = EventData(
-                            topic: Topic.chat,
+                            topic: Topic.message,
                             identity: widget.id,
                             data: newMsg.toMap(),
                           );
+
+                          _messageController.clear();
 
                           MessagePool.instance.send(event);
                         },
@@ -176,7 +180,7 @@ class _ChatScreenState extends State<ChatScreen> {
     final history = MessagePool.instance.loadHistory(_readCount);
 
     if (history != null) {
-      _messages = [...history, ..._messages];
+      _messages = [..._messages, ...history];
       _readCount = _messages.length;
       setState(() {});
     }

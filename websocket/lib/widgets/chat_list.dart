@@ -1,9 +1,7 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:websocket/models/models.dart';
-import 'package:websocket/widgets/chat_screen.dart';
 
+import 'chat_screen.dart';
 import '../pools/pools.dart';
 
 class ChatList extends StatefulWidget {
@@ -23,6 +21,8 @@ class _ChatListState extends State<ChatList>
   @override
   void initState() {
     super.initState();
+
+    chats = ChatPool.instance.pool;
 
     ChatPool.instance.addHook();
     ChatPool.instance.addListener(_updateChatList);
@@ -53,13 +53,36 @@ class _ChatListState extends State<ChatList>
                 final chat = chats![index];
                 final last = MessagePool.instance.lastMessage(chat.id);
 
-                return ListTile(
-                  title: Text(chat.id),
-                  subtitle: last.msg != null
-                      ? Text(last.msg!.text)
-                      : const Text('No Message'),
-                  leading: last.msg != null ? Text(last.msg!.sender) : null,
-                  trailing: last.unread != 0 ? Text('${last.unread}') : null,
+                return GestureDetector(
+                  child: Card(
+                    child: Container(
+                      width: 400,
+                      height: 100,
+                      decoration: BoxDecoration(
+                        border: Border.all(
+                          color: Colors.black,
+                        ),
+                      ),
+                      child: ListTile(
+                        title: Text(chat.id),
+                        subtitle: last.msg != null
+                            ? Text(last.msg!.text)
+                            : const Text('No Message'),
+                        leading:
+                            last.msg != null ? Text(last.msg!.sender) : null,
+                        trailing:
+                            last.unread != 0 ? Text('${last.unread}') : null,
+                      ),
+                    ),
+                  ),
+                  onTap: () => Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => ChatScreen(
+                        id: chat.id,
+                        name: chat.name,
+                      ),
+                    ),
+                  ),
                 );
               },
             )

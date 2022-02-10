@@ -56,7 +56,7 @@ class ChatCache extends LocalCache {
 
   void cacheChatMessage(EventData event) {
     final msg = ChatMessage.fromMap(event.data);
-    final chat = Chat(id: event.identity, name: msg.chatName);
+    final chat = Chat(id: event.identity, name: msg.chatName, members: []);
 
     final chatData = _box.get(event.identity);
 

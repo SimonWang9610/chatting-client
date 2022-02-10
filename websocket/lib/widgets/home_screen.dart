@@ -26,7 +26,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   void initState() {
     super.initState();
 
-    MessagePool.instance.addListener(_counting);
+    WidgetsBinding.instance?.addPostFrameCallback((_) {
+      MessagePool.instance.addListener(_counting);
+    });
   }
 
   @override
@@ -38,7 +40,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   void _counting() {
     _unreadCount = MessagePool.instance.unreadCount;
 
-    setState(() {});
+    if (mounted) {
+      setState(() {});
+    }
   }
 
   @override

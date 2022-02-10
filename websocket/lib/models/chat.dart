@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
+
 import 'package:websocket/storage/local_storage.dart';
 
 import '../storage/constants.dart';
@@ -175,20 +177,23 @@ class ChatAbstract {
 class Chat {
   final String id;
   final String name;
+  final List<String> members;
   Chat({
     required this.id,
     required this.name,
-    this.description,
+    required this.members,
   });
   ChatAbstract? description;
 
   Chat copyWith({
     String? id,
     String? name,
+    List<String>? members,
   }) {
     return Chat(
       id: id ?? this.id,
       name: name ?? this.name,
+      members: members ?? this.members,
     );
   }
 
@@ -196,6 +201,7 @@ class Chat {
     return {
       'id': id,
       'name': name,
+      'members': members,
     };
   }
 
@@ -203,6 +209,7 @@ class Chat {
     return Chat(
       id: map['id'] ?? '',
       name: map['name'] ?? '',
+      members: List<String>.from(map['members']),
     );
   }
 
@@ -211,15 +218,18 @@ class Chat {
   factory Chat.fromJson(String source) => Chat.fromMap(json.decode(source));
 
   @override
-  String toString() => 'Chat(id: $id, name: $name)';
+  String toString() => 'Chat(id: $id, name: $name, members: $members)';
 
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
 
-    return other is Chat && other.id == id && other.name == name;
+    return other is Chat &&
+        other.id == id &&
+        other.name == name &&
+        listEquals(other.members, members);
   }
 
   @override
-  int get hashCode => id.hashCode ^ name.hashCode;
+  int get hashCode => id.hashCode ^ name.hashCode ^ members.hashCode;
 }
