@@ -48,12 +48,14 @@ class _ChatListState extends State<ChatList>
       ),
       body: chats != null && chats!.isNotEmpty
           ? ListView.builder(
+              //itemExtent: 100,
               itemCount: chats!.length,
               itemBuilder: (context, index) {
                 final chat = chats![index];
                 final last = MessagePool.instance.lastMessage(chat.id);
 
                 return GestureDetector(
+                  key: ValueKey(chat.id),
                   child: Card(
                     child: Container(
                       width: 400,

@@ -37,9 +37,10 @@ class ChatPool with ChangeNotifier {
   void _listenEvent() {
     final event = MessagePool.instance.lastEvent;
 
-    if (event!.identity != _pool.last.id) {
+    if (event!.identity != _pool.first.id) {
       _pool.removeWhere((chat) => chat.id == event.identity);
-      _pool.add(
+      _pool.insert(
+        0,
         Chat(
           id: event.identity,
           name: event.data['chatName'],
