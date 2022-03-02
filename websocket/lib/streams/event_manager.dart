@@ -24,11 +24,13 @@ class EventManager {
   static void init({String? uri}) {
     instance.close();
     connect(uri: uri);
+    ChatPool.init();
   }
 
   void close() {
     _subscription?.cancel();
     _channel?.sink.close();
+    ChatPool.close();
   }
 
   bool get isConnected => _channel != null && _subscription != null;
@@ -66,7 +68,7 @@ class EventManager {
       (data) {
         final eventData = EventData.fromJson(data);
 
-        print('Got Event: ${eventData.toString()}');
+        //print('Got Event: ${eventData.toString()}');
 
         switch (eventData.topic) {
           case Topic.chat:

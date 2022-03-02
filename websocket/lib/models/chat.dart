@@ -175,41 +175,42 @@ class ChatAbstract {
 }
 
 class Chat {
-  final String id;
+  final String identity;
   final String name;
-  final List<String> members;
+  final Map<String, dynamic>? data;
+  // final List<String> members;
   Chat({
-    required this.id,
+    required this.identity,
     required this.name,
-    required this.members,
+    this.data,
   });
   ChatAbstract? description;
 
   Chat copyWith({
-    String? id,
+    String? identity,
     String? name,
-    List<String>? members,
+    Map<String, dynamic>? data,
   }) {
     return Chat(
-      id: id ?? this.id,
+      identity: identity ?? this.identity,
       name: name ?? this.name,
-      members: members ?? this.members,
+      data: data ?? this.data,
     );
   }
 
   Map<String, dynamic> toMap() {
     return {
-      'id': id,
+      'identity': identity,
       'name': name,
-      'members': members,
+      'data': data,
     };
   }
 
   factory Chat.fromMap(Map<String, dynamic> map) {
     return Chat(
-      id: map['id'] ?? '',
+      identity: map['identity'] ?? '',
       name: map['name'] ?? '',
-      members: List<String>.from(map['members']),
+      data: map['data'] != null ? Map<String, dynamic>.from(map['data']) : null,
     );
   }
 
@@ -218,18 +219,18 @@ class Chat {
   factory Chat.fromJson(String source) => Chat.fromMap(json.decode(source));
 
   @override
-  String toString() => 'Chat(id: $id, name: $name, members: $members)';
+  String toString() => 'Chat(identity: $identity, name: $name, data: $data)';
 
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
 
     return other is Chat &&
-        other.id == id &&
+        other.identity == identity &&
         other.name == name &&
-        listEquals(other.members, members);
+        mapEquals(other.data, data);
   }
 
   @override
-  int get hashCode => id.hashCode ^ name.hashCode ^ members.hashCode;
+  int get hashCode => identity.hashCode ^ name.hashCode ^ data.hashCode;
 }

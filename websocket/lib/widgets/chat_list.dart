@@ -13,22 +13,24 @@ class ChatList extends StatefulWidget {
 
 class _ChatListState extends State<ChatList>
     with AutomaticKeepAliveClientMixin {
-  List<Chat>? chats;
+  List<Chat> chats = [];
 
   @override
   bool get wantKeepAlive => true;
 
   @override
   void initState() {
+    print('create chat list');
     super.initState();
 
     chats = ChatPool.instance.pool;
 
-    ChatPool.instance.addHook();
+    // ChatPool.instance.addHook();
     ChatPool.instance.addListener(_updateChatList);
   }
 
   void _updateChatList() {
+    print('receive new chat event');
     chats = ChatPool.instance.pool;
     setState(() {});
   }
@@ -36,7 +38,7 @@ class _ChatListState extends State<ChatList>
   @override
   void dispose() {
     ChatPool.instance.removeListener(_updateChatList);
-    ChatPool.instance.removeHook();
+    // ChatPool.instance.removeHook();
     super.dispose();
   }
 
@@ -46,16 +48,18 @@ class _ChatListState extends State<ChatList>
       appBar: AppBar(
         title: const Text('Chat List'),
       ),
-      body: chats != null && chats!.isNotEmpty
+      body: chats.isNotEmpty
           ? ListView.builder(
               //itemExtent: 100,
-              itemCount: chats!.length,
+              itemCount: chats.length,
               itemBuilder: (context, index) {
-                final chat = chats![index];
-                final last = MessagePool.instance.lastMessage(chat.id);
+                final chat = chats[index];
+                final last = MessagePool.instance.lastMessage(
+                  chat.identity,
+                );
 
                 return GestureDetector(
-                  key: ValueKey(chat.id),
+                  key: ValueKey(chat.identity),
                   child: Card(
                     child: Container(
                       width: 400,
@@ -66,7 +70,7 @@ class _ChatListState extends State<ChatList>
                         ),
                       ),
                       child: ListTile(
-                        title: Text(chat.id),
+                        title: Text(chat.identity),
                         subtitle: last.msg != null
                             ? Text(last.msg!.text)
                             : const Text('No Message'),
@@ -80,7 +84,7 @@ class _ChatListState extends State<ChatList>
                   onTap: () => Navigator.of(context).push(
                     MaterialPageRoute(
                       builder: (_) => ChatScreen(
-                        id: chat.id,
+                        id: chat.identity,
                         name: chat.name,
                       ),
                     ),

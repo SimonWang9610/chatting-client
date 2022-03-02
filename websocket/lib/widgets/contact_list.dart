@@ -48,8 +48,10 @@ class _ContactListState extends State<ContactList>
     if (contact != null) {
       if (contact.online) {
         _onlineContacts.add(contact);
+        _offlineContacts.remove(contact);
       } else {
         _offlineContacts.add(contact);
+        _onlineContacts.remove(contact);
       }
 
       setState(() {});
@@ -161,7 +163,8 @@ class NewChat extends StatelessWidget {
         final result = await HttpUtil.post('/chat', data: {
           'topic': 'Topic.chat',
           'name': contact.name,
-          'members': [contact.name, LocalStorage.read(USER)!]
+          'members': [contact.name, LocalStorage.read(USER)!],
+          'creator': LocalStorage.read(USER)!,
         });
 
         if (result['success']) {
@@ -170,7 +173,7 @@ class NewChat extends StatelessWidget {
           Navigator.of(context).push(
             MaterialPageRoute(
               builder: (_) => ChatScreen(
-                id: result['id'],
+                id: result['identity'],
                 name: result['name'],
               ),
             ),

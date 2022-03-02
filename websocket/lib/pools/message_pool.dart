@@ -17,6 +17,7 @@ class MessagePool with ChangeNotifier {
   int unreadCount = 0;
 
   void add(EventData event) {
+    print('MessagPool event: ${event.toString()}');
     lastEvent = event;
 
     final msg = ChatMessage.fromMap(event.data);
