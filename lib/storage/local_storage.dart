@@ -5,8 +5,8 @@ class LocalStorage {
     await GetStorage.init();
   }
 
-  static String? read(String key) {
-    return GetStorage().read<String>(key);
+  static T? read<T>(String key) {
+    return GetStorage().read<T>(key);
   }
 
   static void write(String key, dynamic value) {

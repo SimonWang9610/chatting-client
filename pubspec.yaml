@@ -38,22 +38,23 @@ dependencies:
   uuid: ^3.0.5
   flutter_riverpod: ^1.0.3
   get_storage: ^2.0.3
-  hive: ^2.0.5
-  hive_flutter: ^1.1.0
-  sqflite: ^2.0.2
   http: ^0.13.4
   badges: ^2.0.2
+  isar: 2.2.1
+  isar_flutter_libs: 2.2.1
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
+  isar_generator: 2.2.1
+  build_runner: any
+  flutter_lints: ^1.0.4
 
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is
   # activated in the `analysis_options.yaml` file located at the root of your
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
-  flutter_lints: ^1.0.0
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

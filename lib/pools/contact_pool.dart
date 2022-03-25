@@ -1,31 +1,42 @@
-import 'package:flutter/foundation.dart';
+import 'package:websocket/events/contact_event.dart';
+
 import '../models/models.dart';
+import '../mixins/database_operation_mixin.dart';
+import '../mixins/event_manager_mixin.dart';
+import 'base_pool.dart';
 
-class ContactPool with ChangeNotifier {
-  static final instance = ContactPool._();
-  ContactPool._();
+class ContactPool extends BasePool<Contact>
+    with EventManagerMixin<Contact>, DatabaseOperationMixin<Contact> {
+  static final _instance = ContactPool._();
 
-  final ContactData _pool = ContactData();
+  factory ContactPool() => _instance;
 
-  ContactDetail? lastContact;
+  ContactPool._() : super(Topic.contact);
 
-  void add(EventData event) {
-    final contact = ContactDetail.fromMap(event.data);
+  @override
+  void handleEvent(event) async {
+    final contact = event.data.contact;
 
-    lastContact = contact;
+    late ContactAction action;
 
-    _pool.add(contact);
+    switch (event.action) {
+      case 'invite':
+        await upsert(contact);
+        action = ContactAction.invite;
+        break;
+      case 'accept':
+        await upsert(contact);
+        action = ContactAction.accept;
+        break;
+      case 'delete':
+        await deleteById(event.data['contactId']);
+        action = ContactAction.delete;
+        break;
+    }
 
-    notifyListeners();
+    fire(ContactEvent(
+      contactId: contact.contactId,
+      action: action,
+    ));
   }
-
-  Stream<ContactDetail> watch() {
-    return _pool.subscribe();
-  }
-
-  void unwatch() {
-    _pool.unsubscribe();
-  }
-
-  List<ContactDetail> get contacts => _pool.contacts;
 }

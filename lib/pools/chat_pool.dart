@@ -1,87 +1,52 @@
-import 'package:flutter/cupertino.dart';
-import 'package:websocket/pools/message_pool.dart';
+import '../storage/local_storage.dart';
+
+import 'base_pool.dart';
+import '../mixins/event_manager_mixin.dart';
+import '../mixins/database_operation_mixin.dart';
 
 import '../models/models.dart';
+import '../events/events.dart';
 
-typedef ChatPoolContainer = List<Chat>;
+class ChatPool extends BasePool<Chat>
+    with EventManagerMixin<Chat>, DatabaseOperationMixin<Chat> {
+  static final _instance = ChatPool._();
 
-class ChatPool with ChangeNotifier {
-  static final instance = ChatPool._();
+  factory ChatPool() => _instance;
 
-  ChatPool._();
+  ChatPool._() : super(Topic.chat);
 
-  static void init() {
-    instance.addHook();
-  }
+  List<String> get chatList => LocalStorage.read('chatList') ?? [];
+  set chatList(List<String> value) => LocalStorage.write('chatList', value);
 
-  final ChatPoolContainer _pool = [];
+  @override
+  void handleEvent(event) async {
+    bool isDelete = false;
+    final chatId = event.data['chatId'];
 
-  // if curretnUser is the creator
-  // notify the change to ChatList
-  void newChat(Map<String, dynamic> map) {
-    final chat = Chat.fromMap(map);
-
-    if (!_pool.contains(chat)) {
-      print('Chat Pool Event: ${chat.toString()}');
-      _pool.add(chat);
-      notifyListeners();
-    }
-  }
-
-  void add(EventData event) {
-    print('Chat Pool event: ${event.toString()}');
-    final chat = Chat.fromMap(event.data);
-
-    if (!_pool.contains(chat)) {
-      _pool.add(chat);
-      notifyListeners();
-    }
-  }
-
-  void addHook() {
-    print('hooking to MessagePool');
-    MessagePool.instance.addListener(_listenEvent);
-  }
-
-  void _listenEvent() {
-    print('event from message pool');
-    final event = MessagePool.instance.lastEvent;
-
-    print('chats in pooling: ${_pool.length}');
-
-    final chat = hasChat(event!.identity);
-
-    if (chat == null) {
-      _pool.add(
-        Chat(
-          identity: event.identity,
-          name: event.data['chatName'],
-        ),
-      );
-    } else {
-      if (chat != _pool.first) {
-        _pool.remove(chat);
-        _pool.insert(0, chat);
-      }
+    switch (event.action) {
+      case 'insert':
+        final chat = event.data.chat;
+        await upsert(chat);
+        break;
+      case 'delete':
+        await deleteById(chatId);
+        isDelete = true;
+        break;
     }
 
-    notifyListeners();
+    updateChatList(chatId, isDelete);
+
+    fire(ChatEvent(
+      chatId: chatId,
+      action: isDelete ? ChatAction.delete : ChatAction.insert,
+    ));
   }
 
-  ChatPoolContainer get pool => List.unmodifiable(_pool);
+  void updateChatList(String chatId, [bool onlyRemove = false]) {
+    final chats = chatList;
+    chats.remove(chatId);
 
-  void removeHook() {
-    MessagePool.instance.removeListener(_listenEvent);
-  }
-
-  Chat? hasChat(String chatId) {
-    for (final chat in _pool) {
-      if (chat.identity == chatId) return chat;
-    }
-    return null;
-  }
-
-  static void close() {
-    instance.removeHook();
+    if (!onlyRemove) chats.insert(0, chatId);
+    chatList = chats;
   }
 }

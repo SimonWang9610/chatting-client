@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:web_socket_channel/web_socket_channel.dart';
+import 'package:websocket/pools/base_pool.dart';
 import 'package:websocket/storage/local_storage.dart';
 import '../storage/constants.dart';
 import '../models/models.dart';
@@ -10,6 +11,8 @@ class EventManager {
   static const String defaultUri = 'ws://localhost:8080/';
 
   static final EventManager instance = EventManager._internal();
+
+  final StreamController bus = StreamController.broadcast();
 
   WebSocketChannel? _channel;
 
@@ -24,13 +27,11 @@ class EventManager {
   static void init({String? uri}) {
     instance.close();
     connect(uri: uri);
-    ChatPool.init();
   }
 
   void close() {
     _subscription?.cancel();
     _channel?.sink.close();
-    ChatPool.close();
   }
 
   bool get isConnected => _channel != null && _subscription != null;
@@ -72,13 +73,13 @@ class EventManager {
 
         switch (eventData.topic) {
           case Topic.chat:
-            ChatPool.instance.add(eventData);
+            ChatPool().handleEvent(eventData);
             break;
           case Topic.message:
-            MessagePool.instance.add(eventData);
+            MessagePool().handleEvent(eventData);
             break;
           case Topic.contact:
-            ContactPool.instance.add(eventData);
+            ContactPool().handleEvent(eventData);
             break;
         }
       },
@@ -86,4 +87,6 @@ class EventManager {
       onError: (_) => connect(),
     );
   }
+
+  void fire<T>(T event) => bus.add(event);
 }

@@ -1,68 +1,67 @@
-import 'dart:convert';
-import 'package:flutter/foundation.dart';
-import 'package:websocket/streams/event_manager.dart';
+import 'package:websocket/pools/chat_pool.dart';
 
 import '../models/models.dart';
+import '../mixins/database_operation_mixin.dart';
+import '../mixins/event_manager_mixin.dart';
+import '../events/events.dart';
+import 'base_pool.dart';
 
-typedef MessagePoolContainer = Map<String, ChatData>;
+class MessagePool extends BasePool<Message>
+    with EventManagerMixin<Message>, DatabaseOperationMixin<Message> {
+  static final _instance = MessagePool._internal();
 
-class MessagePool with ChangeNotifier {
-  static final instance = MessagePool._internal();
+  factory MessagePool() => _instance;
 
-  MessagePool._internal();
+  MessagePool._internal() : super(Topic.message);
 
-  final MessagePoolContainer _pool = {};
-  String? subscriber;
-  EventData? lastEvent;
-  int unreadCount = 0;
+  @override
+  void handleEvent(event) async {
+    final msg = event.data.message;
+    final chatId = event.data['chatId'];
 
-  void add(EventData event) {
-    print('MessagPool event: ${event.toString()}');
-    lastEvent = event;
+    switch (event.action) {
+      case 'insert':
+        _handleNewMessage(chatId, msg);
+        break;
+      case 'delete':
+        _handleMessageDelete(msg);
+        break;
+    }
+  }
 
-    final msg = ChatMessage.fromMap(event.data);
+  void _handleNewMessage(String chatId, Message msg) async {
+    final chat = await ChatPool().findById(chatId);
 
-    if (_pool.containsKey(event.identity)) {
-      _pool[event.identity]?.add(msg);
+    if (chat != null) {
+      chat.lastMessage.value = msg;
+      await ChatPool().upsert(chat);
+      ChatPool().updateChatList(chatId);
+      await upsert(msg);
+
+      fire(MessageEvent(chatId: chatId, message: msg));
+      fire(ChatEvent(chatId: chatId));
     } else {
-      _pool[event.identity] = ChatData(event.identity, [msg]);
+      // TODO: fetch remote chat
     }
+  }
 
-    if (event.identity != subscriber) {
-      unreadCount += 1;
+  void _handleMessageDelete(Message msg) async {
+    await deleteById(msg.messageId);
+    fire(MessageEvent(chatId: msg.chatId, message: msg, shouldRemove: true));
+
+    final chat = await ChatPool().findById(msg.chatId);
+
+    if (chat != null && chat.lastMessage.value == msg) {
+      final lastMsgId = getLatest(chatId: chat.chatId);
+
+      chat.lastMessage.value = await findById(lastMsgId);
+
+      fire(
+        ChatEvent(
+          chatId: chat.chatId,
+          action: ChatAction.update,
+        ),
+      );
     }
-
-    notifyListeners();
-  }
-
-  ChatAbstract lastMessage(String chatId) {
-    return _pool[chatId]!.abstract;
-  }
-
-  Stream<ChatMessage> watch(String chatId) {
-    subscriber = chatId;
-
-    if (!_pool.containsKey(chatId)) {
-      _pool[chatId] = ChatData(chatId, []);
-    }
-
-    unreadCount -= _pool[chatId]!.unreadCount;
-
-    notifyListeners();
-
-    return _pool[chatId]!.subcribe();
-  }
-
-  void unwatch() {
-    subscriber = null;
-    _pool[subscriber]?.unsubcribe();
-  }
-
-  void send(EventData event) {
-    EventManager.instance.send(json.encode(event.toMap()));
-  }
-
-  List<ChatMessage>? loadHistory(int readCount) {
-    return _pool[subscriber]?.loadHistory(readCount);
   }
 }
