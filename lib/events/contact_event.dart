@@ -1,5 +1,4 @@
 import 'base_event.dart';
-import '../models/contact.dart';
 
 enum ContactAction {
   invite,

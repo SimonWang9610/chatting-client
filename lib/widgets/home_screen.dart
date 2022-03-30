@@ -6,7 +6,7 @@ import 'package:websocket/pools/chat_pool.dart';
 import 'package:websocket/widgets/chat/chat_list.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:badges/badges.dart';
-import '../widgets/contact_list.dart';
+import 'contact/contact_list.dart';
 import '../interfaces/event_listen_ext.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
