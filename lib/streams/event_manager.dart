@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:web_socket_channel/web_socket_channel.dart';
-import 'package:websocket/pools/base_pool.dart';
 import 'package:websocket/storage/local_storage.dart';
 import '../storage/constants.dart';
 import '../models/models.dart';

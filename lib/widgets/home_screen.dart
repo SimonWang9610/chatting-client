@@ -1,9 +1,13 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
-import 'package:websocket/pools/message_pool.dart';
-import 'package:websocket/widgets/chat_list.dart';
+import 'package:websocket/events/chat_event.dart';
+import 'package:websocket/pools/chat_pool.dart';
+import 'package:websocket/widgets/chat/chat_list.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:badges/badges.dart';
 import '../widgets/contact_list.dart';
+import '../interfaces/event_listen_ext.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -19,6 +23,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   ];
 
   int _unreadCount = 0;
+  late StreamSubscription<ChatEvent> _sub;
 
   final _controller = PageController(initialPage: 0);
 
@@ -27,22 +32,17 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     super.initState();
 
     WidgetsBinding.instance?.addPostFrameCallback((_) {
-      MessagePool.instance.addListener(_counting);
+      _sub = context.listen((event) {
+        _unreadCount = ChatPool().unreadCount;
+        setState(() {});
+      });
     });
   }
 
   @override
   void dispose() {
-    MessagePool.instance.removeListener(_counting);
+    _sub.cancel();
     super.dispose();
-  }
-
-  void _counting() {
-    _unreadCount = MessagePool.instance.unreadCount;
-
-    if (mounted) {
-      setState(() {});
-    }
   }
 
   @override

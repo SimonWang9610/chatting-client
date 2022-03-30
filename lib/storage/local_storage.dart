@@ -1,4 +1,5 @@
 import 'package:get_storage/get_storage.dart';
+import 'package:websocket/storage/constants.dart';
 
 class LocalStorage {
   static void init() async {
@@ -20,4 +21,6 @@ class LocalStorage {
   static clear() {
     GetStorage().erase();
   }
+
+  static String getUserId() => GetStorage().read(USER);
 }

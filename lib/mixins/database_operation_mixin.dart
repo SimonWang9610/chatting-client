@@ -1,3 +1,5 @@
+import 'package:websocket/models/message.dart';
+
 import '../storage/database_controller.dart';
 import '../pools/base_pool.dart';
 
@@ -17,4 +19,7 @@ mixin DatabaseOperationMixin<T> on BasePool<T> {
 
   String? getLatest({String? chatId}) =>
       DatabaseProvider.instance.queryLatest<T>(chatId: chatId);
+
+  Future<List<Message>?> loadMessages(String chatId) =>
+      DatabaseProvider.instance.loadMessages(chatId);
 }

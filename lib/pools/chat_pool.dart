@@ -12,6 +12,9 @@ class ChatPool extends BasePool<Chat>
   static final _instance = ChatPool._();
 
   factory ChatPool() => _instance;
+  String? subscriber;
+  int get unreadCount => LocalStorage.read('messageCount') ?? 0;
+  set unreadCount(int value) => LocalStorage.write('messageCount', value);
 
   ChatPool._() : super(Topic.chat);
 
@@ -43,10 +46,24 @@ class ChatPool extends BasePool<Chat>
   }
 
   void updateChatList(String chatId, [bool onlyRemove = false]) {
+    if (subscriber != chatId) ++unreadCount;
+
     final chats = chatList;
     chats.remove(chatId);
 
     if (!onlyRemove) chats.insert(0, chatId);
     chatList = chats;
+  }
+
+  void postMessage(String chatId, Map<String, dynamic> data) async {
+    // TODO: send message by HTTP
+  }
+
+  void subscribe(String chatId) {
+    subscriber = chatId;
+  }
+
+  void unsubscribe() {
+    subscriber = null;
   }
 }

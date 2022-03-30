@@ -117,4 +117,13 @@ class DatabaseProvider {
     }
     return null;
   }
+
+  Future<List<Message>?> loadMessages(String chatId) async {
+    return messages
+        .where(sort: Sort.desc)
+        .filter()
+        .chatIdEqualTo(chatId)
+        .sortByCreated()
+        .findAll();
+  }
 }
